@@ -1,7 +1,5 @@
 import cv2
 import numpy as np
-import io
-import matplotlib.pyplot as plt
 import warnings
 
 warnings.filterwarnings("ignore")
@@ -73,8 +71,8 @@ def create_dataset(classCnt=2, samplesCnt=1000):
             horizontal = np.sum(figure, axis=1)
             vertical = np.sum(figure, axis=0)
             figures.append(np.append(horizontal, vertical))
-    return np.random.shuffle(figures)
-
+    np.random.shuffle(figures)
+    return figures
 
 def label2class(label):
     classes = ["rectangle", "triangle", "circle", "sine"]
