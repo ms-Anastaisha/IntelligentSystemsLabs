@@ -59,5 +59,5 @@ def mse_loss(X: np.ndarray, y: np.ndarray):
     y_encoded[np.arange(y.shape[0]), y] = 1
     loss = np.mean((y_encoded - preds) ** 2)
     N = X.shape[0]
-    dX = sigmoid_backward(X, 2 * (preds - y_encoded))
+    dX = sigmoid_backward(2 * (preds - y_encoded), X)
     return loss, dX

@@ -62,7 +62,7 @@ def create_random_sine():
 
 
 def create_dataset(classCnt=2, samplesCnt=1000):
-    figures = []
+    figures, labels = [], []
     generate_funcs = [create_random_rectangle, create_random_triangle,
                       create_random_circle, create_random_sine]
     for i in range(classCnt):
@@ -71,8 +71,12 @@ def create_dataset(classCnt=2, samplesCnt=1000):
             horizontal = np.sum(figure, axis=1)
             vertical = np.sum(figure, axis=0)
             figures.append(np.append(horizontal, vertical))
-    np.random.shuffle(figures)
-    return figures
+        labels.extend([i] * samplesCnt)
+    shuffle_mask = np.arange(len(figures))
+    np.random.shuffle(shuffle_mask)
+    figures, labels = np.array(figures)[shuffle_mask], np.array(labels)[shuffle_mask]
+    return figures, labels
+
 
 def label2class(label):
     classes = ["rectangle", "triangle", "circle", "sine"]
