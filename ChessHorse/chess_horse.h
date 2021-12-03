@@ -17,7 +17,7 @@
 #include <random>
 using namespace std;
 
-const int DIM = 6;
+const int DIM = 8;
 extern array<int, 8> VERTICAL;
 extern array<int, 8> HORIZONTAL;
 extern array<int, 8> INDICES;

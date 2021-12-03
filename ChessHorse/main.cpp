@@ -4,9 +4,10 @@
 
 int main() {
     srand (time(nullptr));
+
     auto game = ChessHorse();
     game.start();
-    game.a_star();
+    game.dfs();
     print(game.state);
     return 0;
 }

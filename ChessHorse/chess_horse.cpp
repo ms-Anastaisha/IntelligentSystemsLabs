@@ -34,11 +34,9 @@ void ChessHorse::dfs() {
     mt19937 g(rd());
     stack<ChessState *> s;
     s.push(state);
-    set<unsigned long long> closed_set;
     while (!s.empty()) {
         auto cur = s.top();
         s.pop();
-        closed_set.insert(cur->board.to_ullong());
         if (cur->board.all()) {
             state = cur;
             cout << cur->board << endl;
@@ -54,10 +52,7 @@ void ChessHorse::dfs() {
             auto child = new ChessState();
             child->board = cur->board;
             child->board.set(i * DIM + j);
-            if (closed_set.count(child->board.to_ullong()) == 1) {
-                delete child;
-                continue;
-            }
+
             child->position = {i, j};
             child->prev = cur;
             s.push(child);
@@ -70,7 +65,6 @@ void ChessHorse::bfs() {
     mt19937 g(rd());
     queue<ChessState *> s;
     s.push(state);
-    set<unsigned long long> closed_set;
     while (!s.empty()) {
         auto cur = s.front();
         s.pop();
@@ -90,10 +84,7 @@ void ChessHorse::bfs() {
             auto child = new ChessState();
             child->board = cur->board;
             child->board.set(i * DIM + j);
-            if (closed_set.count(child->board.to_ullong()) == 1) {
-                delete child;
-                continue;
-            }
+
             child->position = {i, j};
             child->prev = cur;
             s.push(child);
