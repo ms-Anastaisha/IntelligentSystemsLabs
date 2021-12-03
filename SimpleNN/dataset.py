@@ -51,7 +51,7 @@ def create_random_triangle():
 def create_random_sine():
     canvas = np.zeros((HEIGHT, WIDTH), dtype=np.float32)
     x1 = np.random.choice(60) + 10
-    x2 = np.random.choice(np.arange(x1 + 10, 190))
+    x2 = np.random.choice(np.arange(x1 + 50, 190))
     x = np.arange(x1, x2, 5)
     height = np.random.choice(np.arange(20, 90))
     height_shift = height + np.random.choice(HEIGHT - height * 2)

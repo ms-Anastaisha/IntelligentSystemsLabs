@@ -26,8 +26,8 @@ int main() {
     Computer comp(game);
     int playerTurn = -1;
     while (true) {
-        comp.game.show();
-        if(playerTurn == 1) {
+        if(turn == 1) {
+            comp.game.show();
             cin >> playerTurn;
             cout<<endl;
             comp.game.make_turn(playerTurn, player);
@@ -35,6 +35,7 @@ int main() {
         }
         else{
             comp.make_best_turn();
+            comp.game.show();
             cin>>playerTurn;
             cout<<endl;
             comp.game.make_turn(playerTurn, player);

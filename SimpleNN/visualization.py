@@ -1,5 +1,3 @@
-import matplotlib.pyplot as plt
-
 
 def visualize_figure(figure):
     figure += 1

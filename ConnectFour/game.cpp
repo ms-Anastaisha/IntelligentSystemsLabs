@@ -10,7 +10,7 @@ char Game::check(const State &state) {
     res = res == '*' ? check_left_diagonal(state) : res;
     res = res == '*' ? check_right_diagonal(state) : res;
     bool tie = true;
-    for (int i = 0; i < 6; ++i) {
+    for (int i = 0; i < 7; ++i) {
         tie &= state[0][i] != '*';
     }
     if (tie)
@@ -19,8 +19,11 @@ char Game::check(const State &state) {
 }
 
 void Game::make_turn(int column, char turn) {
-    if (main_state[0][column] != '*')
+    if (main_state[0][column] != '*'){
+        cout<<"column is not available!!!" << endl;
         return;
+    }
+
     auto index = find_available_index(column);
     main_state[index][column] = turn;
     isCurrentPlayerTurn = !isCurrentPlayerTurn;
@@ -38,14 +41,14 @@ void Game::make_turn(int column, char turn) {
 
 int Game::find_available_index(int column) {
     for (int i = 5; i >= 0; --i)
-        if (main_state[column][i] == '*')
+        if (main_state[i][column] == '*')
             return i;
     return -1;
 }
 
 vector<int> Game::possible_columns(const State &state) {
     vector<int> columns;
-    for (int i = 0; i < 6; ++i)
+    for (int i = 0; i < 7; ++i)
         if (state[0][i] == '*')
             columns.push_back(i);
     return columns;
@@ -84,7 +87,7 @@ char Game::check_left_diagonal(const State &state) {
     for (int i = 0; i < 3; i++)
         for (int j = 6; j > 2; j--)
             if (cmp(state[i + 3][j], state[i + 2][j - 1], state[i + 1][j - 2], state[i][j - 3]))
-                return state[i][j + 3];
+                return state[i + 3][j];
     return '*';
 }
 

@@ -4,6 +4,7 @@ from layers import (linear, linear_backward, relu, relu_backward,
                     mse_loss, sigmoid, softmax_loss,
                     softmax)
 from optimizers import Optimizer
+from tqdm import tqdm, trange
 
 
 class NNet:
@@ -26,11 +27,54 @@ class NNet:
             self.output_activation = softmax
             self.criterion = softmax_loss
 
+        self.loss_history = []
+
+    def check_accuracy(self, X: np.ndarray, y: np.ndarray) -> float:
+        pass
+
+    def _training_step(self, X_batch: np.ndarray, y_batch: np.ndarray, optimizer: Optimizer):
+        _, caches = self.forward(X_batch)
+        loss, grads = self.backward(X_batch, y_batch, caches)
+        self.loss_history.append(loss)
+        for key, weight in self.params.items():
+            grads[key] = optimizer(weight, grads[key])
+
+    def check_accuracy(self, X: np.ndarray, y: np.ndarray) -> float:
+        preds = self.predict(X)
+
+        return np.mean(preds == y)
+
     def train(self, X: np.ndarray, y: np.ndarray,
               X_val: np.ndarray, y_val: np.ndarray,
-              optimizer: Optimizer = Optimizer(),
-              lr: float = 1e-3, num_epochs: int = 10, batch_size=64):
-        pass
+              optimizer: Optimizer = Optimizer(), acc_thresh: float = 0.98,
+              num_epochs: int = 10, batch_size=50):
+        best_params = {}
+        best_val_acc = 0
+        for num_epoch in trange(num_epochs):
+            batch_cnt = X.shape[0] // batch_size
+
+            for i in range(batch_cnt + 1):
+                X_batch, y_batch = X[i * batch_size: (i + 1) * batch_size], y[i * batch_size: (i + 1) * batch_size]
+                self._training_step(X_batch, y_batch, optimizer)
+            print("Training loss after %d epoch: %d" % (num_epoch + 1, self.loss_history[-1]))
+
+            _, caches = self.forward(X_val)
+            loss, _ = self.backward(X_val, y_val, caches)
+            print("Validation loss after %d epoch: %d" % (num_epoch + 1, self.loss_history[-1]))
+            self.loss_history = []
+            train_acc = self.check_accuracy(X, y)
+            val_acc = self.check_accuracy(X_val, y_val)
+
+            print("Training accuracy after %d epoch: %d" % (num_epoch + 1, train_acc))
+            print("Validation loss after %d epoch: %d" % (num_epoch + 1, val_acc))
+
+            if val_acc > best_val_acc:
+                best_val_acc = val_acc
+                best_params = self.params
+
+            if best_val_acc > acc_thresh:
+                break
+        self.params = best_params
 
     def forward(self, X: np.ndarray) -> Tuple[list, dict]:
         hidden_layers_inputs, caches = [X], {}
