@@ -4,7 +4,7 @@ from layers import (linear, linear_backward, relu, relu_backward,
                     mse_loss, sigmoid, softmax_loss,
                     softmax)
 from optimizers import Optimizer
-from tqdm import tqdm, trange
+from tqdm import trange
 import dataset as dt
 
 class NNet:
@@ -20,7 +20,8 @@ class NNet:
         self.params['W%d' % (len(hidden_dims) + 1)] = std * np.random.randn(hidden_dims[-1], num_cls)
         self.params['b%d' % (len(hidden_dims) + 1)] = np.zeros(num_cls)
         self.num_layers = len(hidden_dims) + 1
-        if loss == 'mse':
+        self.loss_type = loss
+        if self.loss_type == 'mse':
             self.output_activation = sigmoid
             self.criterion = mse_loss
         else:
@@ -38,7 +39,7 @@ class NNet:
 
     def check_accuracy(self, X: np.ndarray, y: np.ndarray) -> float:
         preds = self.predict(X)
-
+        preds = np.argmax(preds, axis=1)
         return np.mean(preds == y)
 
     def train(self, X: np.ndarray, y: np.ndarray,
@@ -53,8 +54,7 @@ class NNet:
             for i in range(batch_cnt):
                 X_batch, y_batch = X[i * batch_size: (i + 1) * batch_size], y[i * batch_size: (i + 1) * batch_size]
                 self._training_step(X_batch, y_batch, optimizer)
-            print(self.loss_history)
-            print("Training loss after %d epoch: %.4f" % (num_epoch + 1, self.loss_history[-1]))
+            print("\nTraining loss after %d epoch: %.4f" % (num_epoch + 1, self.loss_history[-1]))
 
             Z, caches = self.forward(X_val)
             loss, _ = self.backward(Z[-1], y_val, caches)
@@ -65,7 +65,7 @@ class NNet:
             val_acc = self.check_accuracy(X_val, y_val)
 
             print("Training accuracy after %d epoch: %.4f" % (num_epoch + 1, train_acc))
-            print("Validation loss after %d epoch: %.4f" % (num_epoch + 1, val_acc))
+            print("Validation accuracy after %d epoch: %.4f" % (num_epoch + 1, val_acc))
 
             if val_acc > best_val_acc:
                 best_val_acc = val_acc
@@ -110,18 +110,18 @@ class NNet:
 
 
 if __name__ == '__main__':
-    model = NNet(hidden_dims=[100],
-                 num_cls=2, loss='softmax')
+    model = NNet(hidden_dims=[500, 20],
+                 num_cls=4, loss='mse')
     optimizer = Optimizer('adam')
-    samples_per_class = 200
-    X_train, y_train = dt.create_dataset(2, int(samples_per_class * 0.9))
-    print(X_train.shape, y_train.shape)
-    X_val, y_val = dt.create_dataset(2, int(samples_per_class * 0.1))
-    model.train(X_train, y_train, X_val, y_val, optimizer, num_epochs=5)
+    samples_per_class = 2000
+    X_train, y_train = dt.create_dataset(4, int(samples_per_class * 0.9))
+    X_val, y_val = dt.create_dataset(4, int(samples_per_class * 0.1))
+    model.train(X_train, y_train, X_val, y_val, optimizer, num_epochs=10)
     generate_funcs = [dt.create_random_rectangle, dt.create_random_triangle,
                       dt.create_random_circle, dt.create_random_sine]
-    figure_num = np.random.choice(1000) % 2
+    figure_num = np.random.choice(1000) % 4
     figure = generate_funcs[figure_num]()
+    print(figure_num)
     horizontal = np.sum(figure, axis=1)
     vertical = np.sum(figure, axis=0)
     fig_vec = np.append(horizontal, vertical)

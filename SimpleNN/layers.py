@@ -37,7 +37,10 @@ def relu(X: np.ndarray):
 
 def softmax(X: np.ndarray):
     e_x = np.exp(X - np.max(X))
-    return e_x / np.sum(np.exp(e_x), axis=1, keepdims=True)
+    if len(e_x.shape) > 1:
+        return e_x / np.sum(e_x, axis=1, keepdims=True)
+    return e_x / np.sum(e_x)
+
 
 
 def softmax_loss(X: np.ndarray, y: np.ndarray):
