@@ -94,9 +94,10 @@ class Optimizer:
 
 class NNet:
 
-    def __init__(self, hidden_dims: list = [500], num_cls: int = 2,
-                 input_dim: int = 400, std: float = 1e-4, loss: str = 'mse'):
+    def __init__(self, hidden_dims: list = [500], num_cls: int = 10,
+                 input_dim: int = 400):
         self.params = {}
+        std = 1e-4
         self.params['W1'] = std * np.random.randn(input_dim, hidden_dims[0])
         self.params['b1'] = np.zeros(hidden_dims[0])
         for i in range(1, len(hidden_dims)):
@@ -105,7 +106,6 @@ class NNet:
         self.params['W%d' % (len(hidden_dims) + 1)] = std * np.random.randn(hidden_dims[-1], num_cls)
         self.params['b%d' % (len(hidden_dims) + 1)] = np.zeros(num_cls)
         self.num_layers = len(hidden_dims) + 1
-        self.loss_type = loss
         self.output_activation = softmax
         self.criterion = softmax_loss
 
@@ -125,7 +125,7 @@ class NNet:
 
     def train(self, X: np.ndarray, y: np.ndarray,
               X_val: np.ndarray, y_val: np.ndarray,
-              optimizer: Optimizer = Optimizer(), acc_thresh: float = 0.98,
+              optimizer: Optimizer = Optimizer(),
               num_epochs: int = 10, batch_size=50):
         best_params = {}
         best_val_acc = -1
@@ -152,8 +152,7 @@ class NNet:
                 best_val_acc = val_acc
                 best_params = self.params
 
-            if best_val_acc > acc_thresh:
-                break
+
         self.params = best_params
 
     def forward(self, X: np.ndarray) -> Tuple[list, dict]:
