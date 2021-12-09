@@ -205,5 +205,5 @@ class ProdModel:
 
 
 if __name__ == '__main__':
-    prod_model = ProdModel('C:/Users/Anastaisha/PycharmProjects/ProdModel/facts.txt')
+    prod_model = ProdModel('/data/facts.txt')
     #print(prod_model.backward_chaining({"f-2","f-11", "f-5" }, "f-10"))
