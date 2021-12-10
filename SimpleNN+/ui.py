@@ -126,6 +126,7 @@ class NeuralNetworkUI:
             return
         start = time.time()
         for train_stats in self.model.train(epoch_num):
+            print(train_stats)
             self.user_message.config(text=train_stats, fg="#07f")
             self.window.update()
 
@@ -206,7 +207,7 @@ class NeuralNetworkUI:
         while not ret:
             ret, frame = self.cap.read()
             i += 1
-            if i == 1000:
+            if i == 100:
                 return
         cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
         preprocessed = self._preprocess(frame)

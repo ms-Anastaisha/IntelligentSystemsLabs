@@ -2,7 +2,7 @@ import numpy as np
 from typing import Tuple
 
 import torch
-from tqdm import trange
+from tqdm import tqdm
 
 from dataset import ImageDataset
 
@@ -29,6 +29,26 @@ def relu_backward(d: np.ndarray, prev: np.ndarray):
 
 def relu(X: np.ndarray):
     return np.maximum(0, X), X
+
+
+def sigmoid(X: np.ndarray):
+    return 1 / (1 + np.exp(-X))
+
+
+def sigmoid_backward(d: np.ndarray, prev: np.ndarray):
+    X = prev.copy()
+    sigma = sigmoid(X)
+    return sigma * (1 - sigma) * d
+
+
+def mse_loss(X: np.ndarray, y: np.ndarray):
+    preds = sigmoid(X)
+    y_encoded = np.zeros((y.shape[0], y.max(initial=0) + 1))
+    y_encoded[np.arange(y.shape[0]), y] = 1
+    loss = np.mean((y_encoded - preds) ** 2)
+    N = X.shape[0]
+    dX = sigmoid_backward(2 * (preds - y_encoded), X)
+    return loss, dX
 
 
 def softmax(X: np.ndarray):
@@ -113,8 +133,8 @@ class NNet:
         self.num_layers = len(hidden_dims) + 1
 
         ## params
-        self.output_activation = softmax
-        self.criterion = softmax_loss
+        self.output_activation = sigmoid
+        self.criterion = mse_loss
         self.optimizer = Optimizer("adam")
         self.loss_history = []
 
@@ -149,11 +169,14 @@ class NNet:
     def train(self, num_epochs: int = 10):
         best_params = {}
         best_val_acc = -1
-        for num_epoch in trange(num_epochs):
+        for num_epoch in range(num_epochs):
             running_accuracy = 0
             i = 0
-            for data in self.trainloader:
+            for data in tqdm(self.trainloader):
                 X_batch, y_batch = data
+                y_batch = y_batch.numpy()
+                X_batch = torch.stack(X_batch)
+                X_batch = torch.t(X_batch).numpy()
                 self._training_step(X_batch, y_batch, self.optimizer)
                 running_accuracy += self.check_accuracy(X_batch, y_batch)
                 i += 1
@@ -161,16 +184,16 @@ class NNet:
             train_acc = running_accuracy / i
 
             ## validation
-            X_val, y_val = [], []
-            for data in self.valloader:
+            val_accuracy = 0
+            val_i = 0
+            for data in tqdm(self.valloader):
                 X_val_batch, y_val_batch = data
-                X_val.extend(X_val_batch)
-                y_val.extend(y_val_batch)
-            X_val, y_val = np.array(X_val), np.array(y_val)
-            Z, caches = self.forward(X_val)
-            loss, _ = self.backward(Z[-1], y_val, caches)
-            val_acc = self.check_accuracy(X_val, y_val)
-
+                y_val_batch = y_val_batch.numpy()
+                X_val_batch = torch.stack(X_val_batch)
+                X_val_batch = torch.t(X_val_batch).numpy()
+                val_accuracy += self.check_accuracy(X_val_batch, y_val_batch)
+                val_i += 1
+            val_acc = val_accuracy / i
             self.loss_history = []
 
             yield "%d epoch:\n training loss: %.4f\n " \
@@ -230,8 +253,11 @@ class NNet:
     def test(self):
         running_accuracy = 0
         i = 0
-        for data in self.testloader:
+        for data in tqdm(self.testloader):
             x, y = data
+            y = y.numpy()
+            x = torch.stack(x)
+            x = torch.t(x).numpy()
             i += 1
             running_accuracy += self.check_accuracy(x, y)
 
