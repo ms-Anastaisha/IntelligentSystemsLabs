@@ -1,6 +1,7 @@
 from collections import defaultdict, deque
 from tkinter import *
 import re
+import pandas as pd
 
 
 class ProductNode:
@@ -76,25 +77,28 @@ class SolutionTree:
 
 
 class ProdModel:
-    def __init__(self, filename):
+    def __init__(self, facts_file, products_file):
         self.window = Tk()
         self.window.title("Продукционная модель - выбор книг")
+
+        ## init
+        self.visible = set()
         self.facts = {}
         self.final_facts = {}
         self.products = {}
-        self.parse_facts(filename)
+        self._parse_facts(facts_file)
+        self._parse_products(products_file)
 
-        self.fact_text = Text(self.window)
-
-        self.final_text = Text(self.window)
-        self.result_text = Text(self.window)
-
+        ## control buttons
         self.button_forward = Button(self.window, text="Прямой вывод", command=self.init_forward)
         self.button_backward = Button(self.window, text="Обратный вывод", command=self.init_backward)
-
         self.button_forward.grid(column=1, row=1, sticky=NW)
         self.button_backward.grid(column=1, row=1, sticky=W)
 
+        ## texts outputs
+        self.fact_text = Text(self.window)
+        self.final_text = Text(self.window)
+        self.result_text = Text(self.window)
         self.fact_text.grid(column=0, row=0)
         self.final_text.grid(column=0, row=1)
         self.result_text.grid(column=1, row=0)
@@ -127,19 +131,35 @@ class ProdModel:
 
         self.window.mainloop()
 
-    def parse_facts(self, filename):
-        with open(filename, 'r', encoding='utf8') as f:
-            for line in f:
-                line = line.strip().split(';')
-                if len(line) == 1: continue
-                if line[0][0] == 'f':
-                    if len(line) == 2:
-                        self.facts[line[0]] = line[1]
-                    else:
-                        self.final_facts[line[0]] = line[1]
-                else:
-                    line[1] = line[1].split(',')
-                    self.products[line[0]] = (set(line[1]), line[2])
+    def _parse_facts(self, filename):
+        data = pd.read_csv(filename, sep=';')
+        for _, row in data.iterrows():
+            if row["status"] == "f":
+                self.final_facts[row["fact_id"]] = row["fact_name"]
+                continue
+            elif row["status"] != "i":
+                self.visible.add(row["fact_id"])
+            self.facts[row["fact_id"]] = row["fact_name"]
+
+        print(self.facts)
+        print(self.final_facts)
+        print(len(self.visible))
+
+    # with open(filename, 'r', encoding='utf8') as f:
+    #     for line in f:
+    #         line = line.strip().split(';')
+    #         if len(line) == 1: continue
+    #         if line[0][0] == 'f':
+    #             if len(line) == 2:
+    #                 self.facts[line[0]] = line[1]
+    #             else:
+    #                 self.final_facts[line[0]] = line[1]
+    #         else:
+    #             line[1] = line[1].split(',')
+    #             self.products[line[0]] = (set(line[1]), line[2])
+
+    def _parse_products(self, filename):
+        ...
 
     def forward_chaining(self, init_facts):
         reasoning = defaultdict(list)
@@ -205,5 +225,5 @@ class ProdModel:
 
 
 if __name__ == '__main__':
-    prod_model = ProdModel('/data/facts.txt')
-    #print(prod_model.backward_chaining({"f-2","f-11", "f-5" }, "f-10"))
+    prod_model = ProdModel('./data/facts.txt', './data/productions.txt')
+    # print(prod_model.backward_chaining({"f-2","f-11", "f-5" }, "f-10"))
