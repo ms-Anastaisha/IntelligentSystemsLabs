@@ -91,7 +91,8 @@ class ImageDataset(torch.utils.data.Dataset):
 if __name__ == "__main__":
     dataset = ImageDataset(dataset_len=600)
     print(dataset.labels2names_)
-    for i in range(len(dataset)):
-        x, y = dataset[i]
-        print(y)
-        print(x)
+    # print(dataset[:10])
+    # for i in range(len(dataset)):
+    #     x, y = dataset[i]
+    #     print(y)
+    #     print(x)

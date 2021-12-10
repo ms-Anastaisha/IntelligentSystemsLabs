@@ -1,6 +1,10 @@
 import numpy as np
 from typing import Tuple
+
+import torch
 from tqdm import trange
+
+from dataset import ImageDataset
 
 
 def linear_backward(d: np.ndarray, prev: tuple):
@@ -96,6 +100,7 @@ class NNet:
 
     def __init__(self, hidden_dims: list = [500], num_cls: int = 10,
                  input_dim: int = 400):
+        ## architecture
         self.params = {}
         std = 1e-4
         self.params['W1'] = std * np.random.randn(input_dim, hidden_dims[0])
@@ -106,10 +111,28 @@ class NNet:
         self.params['W%d' % (len(hidden_dims) + 1)] = std * np.random.randn(hidden_dims[-1], num_cls)
         self.params['b%d' % (len(hidden_dims) + 1)] = np.zeros(num_cls)
         self.num_layers = len(hidden_dims) + 1
+
+        ## params
         self.output_activation = softmax
         self.criterion = softmax_loss
-
+        self.optimizer = Optimizer("adam")
         self.loss_history = []
+
+        ## datasets
+        traindataset = ImageDataset(dataset_len=3000)
+        self.labels2names = traindataset.labels2names_
+        self.trainloader = torch.utils.data.DataLoader(
+            traindataset, batch_size=50, shuffle=True, num_workers=2
+        )
+
+        self.testloader = torch.utils.data.DataLoader(
+            ImageDataset(dataset_len=300, labels2names=self.labels2names),
+            batch_size=50, shuffle=True, num_workers=2
+        )
+        self.valloader = torch.utils.data.DataLoader(
+            ImageDataset(dataset_len=300, labels2names=self.labels2names),
+            batch_size=50, shuffle=True, num_workers=2
+        )
 
     def _training_step(self, X_batch: np.ndarray, y_batch: np.ndarray, optimizer: Optimizer):
         Z, caches = self.forward(X_batch)
@@ -119,39 +142,44 @@ class NNet:
             self.params[key] = optimizer(weight, grads[key], key)
 
     def check_accuracy(self, X: np.ndarray, y: np.ndarray) -> float:
-        preds = self.predict(X)
+        preds = self._predict(X)
         preds = np.argmax(preds, axis=1)
         return np.mean(preds == y)
 
-    def train(self, X: np.ndarray, y: np.ndarray,
-              X_val: np.ndarray, y_val: np.ndarray,
-              optimizer: Optimizer = Optimizer(),
-              num_epochs: int = 10, batch_size=50):
+    def train(self, num_epochs: int = 10):
         best_params = {}
         best_val_acc = -1
         for num_epoch in trange(num_epochs):
-            batch_cnt = X.shape[0] // batch_size
+            running_accuracy = 0
+            i = 0
+            for data in self.trainloader:
+                X_batch, y_batch = data
+                self._training_step(X_batch, y_batch, self.optimizer)
+                running_accuracy += self.check_accuracy(X_batch, y_batch)
+                i += 1
+            training_loss = np.mean(self.loss_history)
+            train_acc = running_accuracy / i
 
-            for i in range(batch_cnt):
-                X_batch, y_batch = X[i * batch_size: (i + 1) * batch_size], y[i * batch_size: (i + 1) * batch_size]
-                self._training_step(X_batch, y_batch, optimizer)
-            print("\nTraining loss after %d epoch: %.4f" % (num_epoch + 1, self.loss_history[-1]))
-
+            ## validation
+            X_val, y_val = [], []
+            for data in self.valloader:
+                X_val_batch, y_val_batch = data
+                X_val.extend(X_val_batch)
+                y_val.extend(y_val_batch)
+            X_val, y_val = np.array(X_val), np.array(y_val)
             Z, caches = self.forward(X_val)
             loss, _ = self.backward(Z[-1], y_val, caches)
-
-            print("Validation loss after %d epoch: %.4f" % (num_epoch + 1, self.loss_history[-1]))
-            self.loss_history = []
-            train_acc = self.check_accuracy(X, y)
             val_acc = self.check_accuracy(X_val, y_val)
 
-            print("Training accuracy after %d epoch: %.4f" % (num_epoch + 1, train_acc))
-            print("Validation accuracy after %d epoch: %.4f" % (num_epoch + 1, val_acc))
+            self.loss_history = []
 
+            yield "%d epoch:\n training loss: %.4f\n " \
+                  "training accuracy: %.4f\n validation accuracy: %.4f" % (num_epoch + 1,
+                                                                           training_loss,
+                                                                           train_acc, val_acc)
             if val_acc > best_val_acc:
                 best_val_acc = val_acc
                 best_params = self.params
-
 
         self.params = best_params
 
@@ -185,9 +213,29 @@ class NNet:
 
         return loss, grads
 
-    def predict(self, X: np.ndarray):
+    def _predict(self, X: np.ndarray):
         Z, _ = self.forward(X)
         return self.output_activation(Z[-1])
+
+    def predict(self, X: np.ndarray):
+        prediction = self._predict(X)
+        label = np.argmax(prediction)
+        predictions = []
+        for i, p in enumerate(prediction):
+            predictions.append("%s : %.5f" % (self.labels2names[i], p))
+
+        return "Prediction: %s \nProbabilities:\n%s" % (self.labels2names[label],
+                                                        "\n".join(predictions))
+
+    def test(self):
+        running_accuracy = 0
+        i = 0
+        for data in self.testloader:
+            x, y = data
+            i += 1
+            running_accuracy += self.check_accuracy(x, y)
+
+        return "Test accuracy: %.4f" % (running_accuracy / i)
 
 
 if __name__ == '__main__':
