@@ -133,8 +133,8 @@ class NNet:
         self.num_layers = len(hidden_dims) + 1
 
         ## params
-        self.output_activation = sigmoid
-        self.criterion = mse_loss
+        self.output_activation = softmax
+        self.criterion = softmax_loss
         self.optimizer = Optimizer("adam")
         self.loss_history = []
 
