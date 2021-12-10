@@ -80,7 +80,7 @@ class NetWrapper:
                       epoch + 1, running_loss / i,
                       running_accuracy / i, val_running_accuracy / val_i)
 
-    def predict(self, x, y) -> Tuple[str, bool]:
+    def predict(self, x) -> str:
         prediction = self.output_activation(self.net(x))
         label = torch.argmax(prediction)
         predictions = []
@@ -88,7 +88,7 @@ class NetWrapper:
             predictions.append("%s : %.5f" % (self.labels2names[i], p))
 
         return "Prediction: %s \nProbabilities:\n%s" % (self.labels2names[label],
-                                                        "\n".join(predictions)), label == y
+                                                        "\n".join(predictions))
 
     def test(self):
         running_accuracy = 0

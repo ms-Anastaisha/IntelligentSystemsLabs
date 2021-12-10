@@ -34,19 +34,22 @@ def read_images(image_dir_path: str, labels2names: dict = None) -> Tuple[List[np
 
 
 def crop_borders(image: np.ndarray) -> np.ndarray:
-    mask = image == 0
+    try:
+        mask = image == 0
 
-    coords = np.array(np.nonzero(~mask))
-    top_left = np.min(coords, axis=1)
-    bottom_right = np.max(coords, axis=1)
+        coords = np.array(np.nonzero(~mask))
+        top_left = np.min(coords, axis=1)
+        bottom_right = np.max(coords, axis=1)
 
-    out = image[top_left[0] - 5:bottom_right[0] + 5, top_left[1] - 5:bottom_right[1] + 5]
-    if out.shape[0] == 0 or out.shape[1] == 0:
-        center_y, center_x = image.shape[0] // 2, image.shape[1] // 2
-        return image[center_y - center_y // 2:center_y + center_y // 2,
-               center_x - center_x // 2: center_x + center_x // 2]
+        out = image[top_left[0] - 5:bottom_right[0] + 5, top_left[1] - 5:bottom_right[1] + 5]
+        if out.shape[0] == 0 or out.shape[1] == 0:
+            center_y, center_x = image.shape[0] // 2, image.shape[1] // 2
+            return image[center_y - center_y // 2:center_y + center_y // 2,
+                   center_x - center_x // 2: center_x + center_x // 2]
 
-    return out
+        return out
+    except Exception:
+        return image
 
 
 @numba.jit(nopython=True)
