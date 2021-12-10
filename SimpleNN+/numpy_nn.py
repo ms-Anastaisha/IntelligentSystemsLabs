@@ -217,7 +217,7 @@ class NNet:
         Z, _ = self.forward(X)
         return self.output_activation(Z[-1])
 
-    def predict(self, X: np.ndarray):
+    def predict(self, X: np.ndarray, y) -> Tuple[str, int]:
         prediction = self._predict(X)
         label = np.argmax(prediction)
         predictions = []
@@ -225,7 +225,7 @@ class NNet:
             predictions.append("%s : %.5f" % (self.labels2names[i], p))
 
         return "Prediction: %s \nProbabilities:\n%s" % (self.labels2names[label],
-                                                        "\n".join(predictions))
+                                                        "\n".join(predictions)), label == y
 
     def test(self):
         running_accuracy = 0

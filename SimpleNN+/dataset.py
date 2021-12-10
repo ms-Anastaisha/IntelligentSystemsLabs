@@ -13,7 +13,7 @@ def read_images(image_dir_path: str, labels2names: dict = None) -> Tuple[List[np
     if labels2names is None:
         labels2names = {}
     else:
-        names2labels = {v: k for k, v in labels2names}
+        names2labels = {v: k for k, v in labels2names.items()}
     labels = []
     images = []
 

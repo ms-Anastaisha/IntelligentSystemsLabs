@@ -3,11 +3,16 @@ import re
 from typing import Union
 from PIL import ImageTk, Image
 
+from numpy_nn import NNet
+from pytorch_nn import NetWrapper
+
 NET_OPTIONS = ["numpy handmade", "pytorch"]
 NORMAL_MESSAGE = "Ready to work!"
 ERROR_ARCHITECTURE = "ERROR! \nNetwork architecture \n should contain \n from 1 to 3 layers,\n and" \
                      "\nfrom 20 to 2000 neurons"
 ERROR_EPOCH = "ERROR! \nEpoch num \n should be \n greater than 0 \n and less than 101"
+NET_CREATED = "Neural network created!"
+TRAINING_FINISHED = "Training finished!"
 
 
 class NeuralNetworkUI:
@@ -101,11 +106,13 @@ class NeuralNetworkUI:
             self.error = True
             self.user_message.config(text=ERROR_EPOCH, fg="#f00")
             return
-
+        for train_stats in self.model.train(epoch_num):
+            self.user_message.config(text=train_stats, fg="#0f0")
+        self.user_message.config(text=TRAINING_FINISHED, fg="#00f")
 
     def _test(self) -> None:
-        ...
-
+        test_result = self.model.test()
+        self.user_message.config(text=test_result, fg="#0f0")
 
     def _create(self) -> None:
         if self.error:
@@ -117,7 +124,11 @@ class NeuralNetworkUI:
             self.error = True
             self.user_message.config(text=ERROR_ARCHITECTURE, fg="#f00")
             return
-
+        if architecture_type == NET_OPTIONS[0]:
+            self.model = NNet(architecture)
+        else:
+            self.model = NetWrapper(architecture)
+        self.user_message.config(text=NET_CREATED, fg="#00f")
 
     def _predict(self):
         ...
