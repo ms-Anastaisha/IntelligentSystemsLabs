@@ -126,7 +126,9 @@ class NeuralNetworkUI:
             return
         start = time.time()
         for train_stats in self.model.train(epoch_num):
-            self.user_message.config(text=train_stats, fg="#0f0")
+            self.user_message.config(text=train_stats, fg="#07f")
+            self.window.update()
+
         end = time.time() - start
         self.user_message.config(text=TRAINING_FINISHED + "\n Time elapsed: %.3f s" % end, fg="#00f")
         self.train_flag = True
@@ -140,7 +142,7 @@ class NeuralNetworkUI:
             self.error = True
             return
         test_result = self.model.test()
-        self.user_message.config(text=test_result, fg="#0f0")
+        self.user_message.config(text=test_result, fg="#07f")
 
     def _create(self) -> None:
         if self.error:
@@ -169,7 +171,7 @@ class NeuralNetworkUI:
             return
         test_sample = compute_sample(self.test_image)
         prediction = self.model.predict(test_sample)
-        self.user_message.config(text=prediction, fg="#00f")
+        self.user_message.config(text=prediction, fg="#07f")
 
     def _preprocess(self, image):
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)

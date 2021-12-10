@@ -4,6 +4,7 @@ from typing import Tuple
 import torch
 
 from dataset import ImageDataset
+from tqdm import tqdm
 
 
 class ClassificationNet(torch.nn.Module):
@@ -51,10 +52,12 @@ class NetWrapper:
             running_loss = 0
             running_accuracy = 0
             i = 0
-            for data in self.trainloader:
+            for data in tqdm(self.trainloader):
                 x, y = data
                 i += 1
-
+                x = torch.stack(x)
+                x = torch.t(x)
+                x = x.type(torch.FloatTensor)
                 optimizer.zero_grad()
 
                 outputs = self.net(x)
@@ -63,17 +66,19 @@ class NetWrapper:
                 loss.backward()
                 optimizer.step()
                 running_loss += loss.item()
-                running_accuracy += torch.mean(preds == y)
+                running_accuracy += torch.mean((preds == y).float())
 
             val_running_accuracy = 0
             val_i = 0
-            for data in self.valloader:
+            for data in tqdm(self.valloader):
                 x, y = data
                 val_i += 1
-
+                x = torch.stack(x)
+                x = torch.t(x)
+                x = x.type(torch.FloatTensor)
                 outputs = self.net(x)
                 preds = torch.argmax(self.output_activation(outputs), dim=1)
-                val_running_accuracy += torch.mean(preds == y)
+                val_running_accuracy += torch.mean((preds == y).float())
 
             yield "%d epoch:\n training loss: %.4f\n " \
                   "training accuracy: %.4f\n validation accuracy: %.4f" % (
@@ -81,24 +86,28 @@ class NetWrapper:
                       running_accuracy / i, val_running_accuracy / val_i)
 
     def predict(self, x) -> str:
-        prediction = self.output_activation(self.net(x))
+        x = torch.FloatTensor(x)
+        prediction = torch.nn.Softmax()(self.net(x))
         label = torch.argmax(prediction)
         predictions = []
         for i, p in enumerate(prediction):
             predictions.append("%s : %.5f" % (self.labels2names[i], p))
 
-        return "Prediction: %s \nProbabilities:\n%s" % (self.labels2names[label],
+        return "Prediction: %s \nProbabilities:\n%s" % (self.labels2names[label.item()],
                                                         "\n".join(predictions))
 
     def test(self):
         running_accuracy = 0
         i = 0
-        for data in self.testloader:
+        for data in tqdm(self.testloader):
             x, y = data
             i += 1
+            x = torch.stack(x)
+            x = torch.t(x)
+            x = x.type(torch.FloatTensor)
 
             outputs = self.net(x)
             preds = torch.argmax(self.output_activation(outputs), dim=1)
-            running_accuracy += torch.mean(preds == y)
+            running_accuracy += torch.mean((preds == y).float())
 
         return "Test accuracy: %.4f" % (running_accuracy / i)

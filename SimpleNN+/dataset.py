@@ -57,8 +57,8 @@ def compute_sample(image: np.ndarray) -> List[Union[int, np.ndarray]]:
     cell_width, cell_height = 20, 20
     return [np.sum(image[i * cell_height:(i + 1) * cell_height,
                    j * cell_width:(j + 1) * cell_width])
-            for i in range(image.shape[0] // cell_height + 1)
-            for j in range(image.shape[1] // cell_width + 1)]
+            for i in range(image.shape[0] // cell_height)
+            for j in range(image.shape[1] // cell_width)]
 
 
 class ImageDataset(torch.utils.data.Dataset):
@@ -94,8 +94,7 @@ class ImageDataset(torch.utils.data.Dataset):
 if __name__ == "__main__":
     dataset = ImageDataset(dataset_len=600)
     print(dataset.labels2names_)
-    # print(dataset[:10])
+
     # for i in range(len(dataset)):
     #     x, y = dataset[i]
-    #     print(y)
-    #     print(x)
+    #     print(len(x))
