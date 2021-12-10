@@ -1,13 +1,13 @@
-from typing import Tuple, List
+from typing import Tuple, List, Union
 
 import albumentations as A
 import numpy as np
 import torch
 import os
 import cv2
+import numba
 
 
-# Downscale, GaussianBlur, GaussNoise, RandomScale
 def read_images(image_dir_path: str) -> Tuple[List[np.ndarray], List[int], dict]:
     labels2names = {}
     labels = []
@@ -25,28 +25,42 @@ def read_images(image_dir_path: str) -> Tuple[List[np.ndarray], List[int], dict]
     return images, labels, labels2names
 
 
-def crop_borders(image):
+def crop_borders(image: np.ndarray) -> np.ndarray:
     mask = image == 0
 
     coords = np.array(np.nonzero(~mask))
     top_left = np.min(coords, axis=1)
     bottom_right = np.max(coords, axis=1)
 
-    out = image[top_left[0]:bottom_right[0], top_left[1]:bottom_right[1]]
+    out = image[top_left[0] - 5:bottom_right[0] + 5, top_left[1] - 5:bottom_right[1] + 5]
+    if out.shape[0] == 0 or out.shape[1] == 0:
+        center_y, center_x = image.shape[0] // 2, image.shape[1] // 2
+        return image[center_y - center_y // 2:center_y + center_y // 2,
+               center_x - center_x // 2: center_x + center_x // 2]
 
     return out
 
 
+@numba.jit(nopython=True)
+def compute_sample(image: np.ndarray) -> List[Union[int, np.ndarray]]:
+    cell_width, cell_height = 20, 20
+    return [np.sum(image[i * cell_height:(i + 1) * cell_height,
+                   j * cell_width:(j + 1) * cell_width])
+            for i in range(image.shape[0] // cell_height + 1)
+            for j in range(image.shape[1] // cell_width + 1)]
+
+
 class ImageDataset(torch.utils.data.Dataset):
     def __init__(self, image_dir_path: str = './data', dataset_len: int = 3000):
-        self.images, self.labels, self.labels2names = read_images(image_dir_path)
+        images, labels, labels2names = read_images(image_dir_path)
+        self.images = images
+        self.labels = labels
+        self.labels2names = labels2names
         self.transform = A.Compose([
             A.Downscale(p=0.3),
             A.GlassBlur(p=0.3),
-            A.GaussNoise(p=0.3),
             A.GaussianBlur(p=0.3),
-            A.Rotate(limit=10, p=0.4),
-            A.RandomScale(p=0.4),
+            A.Rotate(limit=15, p=0.4, border_mode=cv2.BORDER_CONSTANT, value=0),
             A.Resize(400, 400)
         ])
         self.dataset_len = dataset_len
@@ -56,7 +70,20 @@ class ImageDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx: int):
         idx = idx % len(self.labels)
+        image = self.transform(image=self.images[idx])["image"]
+        # cv2.imshow("", (image * 255))
+        # cv2.waitKey()
+        return compute_sample(image), self.labels[idx]
+
+    @property
+    def labels2names_(self):
+        return self.labels2names
 
 
 if __name__ == "__main__":
-    read_images('./data')
+    dataset = ImageDataset(dataset_len=600)
+    print(dataset.labels2names_)
+    for i in range(len(dataset)):
+        x, y = dataset[i]
+        print(y)
+        print(x)
