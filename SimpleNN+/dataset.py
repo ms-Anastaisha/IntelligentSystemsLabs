@@ -8,19 +8,27 @@ import cv2
 import numba
 
 
-def read_images(image_dir_path: str) -> Tuple[List[np.ndarray], List[int], dict]:
-    labels2names = {}
+def read_images(image_dir_path: str, labels2names: dict = None) -> Tuple[List[np.ndarray], List[int], dict]:
+    names2labels = None
+    if labels2names is None:
+        labels2names = {}
+    else:
+        names2labels = {v: k for k, v in labels2names}
     labels = []
     images = []
 
     for i, img_dir in enumerate(os.listdir(image_dir_path)):
-        labels2names[i] = img_dir
+        if names2labels is None:
+            labels2names[i] = img_dir
         for img in os.listdir(os.path.join(image_dir_path, img_dir)):
             image = cv2.cvtColor(cv2.imread(os.path.join(image_dir_path, img_dir, img)), cv2.COLOR_BGR2GRAY)
             image[image <= 98] = 1
             image[image > 98] = 0
             images.append(crop_borders(image))
-            labels.append(i)
+            if names2labels is not None:
+                labels.append(names2labels[img_dir])
+            else:
+                labels.append(i)
 
     return images, labels, labels2names
 
@@ -51,8 +59,8 @@ def compute_sample(image: np.ndarray) -> List[Union[int, np.ndarray]]:
 
 
 class ImageDataset(torch.utils.data.Dataset):
-    def __init__(self, image_dir_path: str = './data', dataset_len: int = 3000):
-        images, labels, labels2names = read_images(image_dir_path)
+    def __init__(self, image_dir_path: str = './data', dataset_len: int = 3000, labels2names: dict = None):
+        images, labels, labels2names = read_images(image_dir_path, labels2names)
         self.images = images
         self.labels = labels
         self.labels2names = labels2names

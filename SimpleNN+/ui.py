@@ -53,9 +53,11 @@ class NeuralNetworkUI:
         self.train_button = Button(self.window, text="Create", width=15, command=self._create)
         self.create_button = Button(self.window, text="Train", width=15, command=self._train)
         self.test_button = Button(self.window, text="Test", width=15, command=self._test)
+        self.inference_button = Button(self.window, text="Inference", width=15, command=self._inference)
         self.train_button.grid(row=1, column=3, sticky="N")
         self.create_button.grid(row=1, column=2, sticky="N")
-        self.test_button.grid(row=1, column=2, columnspan=2)
+        self.test_button.grid(row=1, column=3)
+        self.inference_button.grid(row=1, column=2)
 
         ## parameters
         self.model = None
@@ -91,26 +93,34 @@ class NeuralNetworkUI:
         entry.delete(0, 'end')
 
     def _train(self) -> None:
-        ...
-
-    def _test(self) -> None:
-        ...
-
-    def _create(self) -> None:
         if self.error:
             self.error = False
             self.user_message.config(text=NORMAL_MESSAGE, fg="#333")
-        architecture_type = self.net_choice.get()
-        architecture = self._parse_architecture()
-        if architecture is None:
-            self.error = True
-            self.user_message.config(text=ERROR_ARCHITECTURE, fg="#f00")
-            return
         epoch_num = self._parse_epoch_num()
         if epoch_num is None:
             self.error = True
             self.user_message.config(text=ERROR_EPOCH, fg="#f00")
             return
+
+
+def _test(self) -> None:
+    ...
+
+
+def _create(self) -> None:
+    if self.error:
+        self.error = False
+        self.user_message.config(text=NORMAL_MESSAGE, fg="#333")
+    architecture_type = self.net_choice.get()
+    architecture = self._parse_architecture()
+    if architecture is None:
+        self.error = True
+        self.user_message.config(text=ERROR_ARCHITECTURE, fg="#f00")
+        return
+
+
+def _inference(self):
+    ...
 
 
 if __name__ == '__main__':
