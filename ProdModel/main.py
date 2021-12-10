@@ -141,25 +141,11 @@ class ProdModel:
                 self.visible.add(row["fact_id"])
             self.facts[row["fact_id"]] = row["fact_name"]
 
-        print(self.facts)
-        print(self.final_facts)
-        print(len(self.visible))
-
-    # with open(filename, 'r', encoding='utf8') as f:
-    #     for line in f:
-    #         line = line.strip().split(';')
-    #         if len(line) == 1: continue
-    #         if line[0][0] == 'f':
-    #             if len(line) == 2:
-    #                 self.facts[line[0]] = line[1]
-    #             else:
-    #                 self.final_facts[line[0]] = line[1]
-    #         else:
-    #             line[1] = line[1].split(',')
-    #             self.products[line[0]] = (set(line[1]), line[2])
-
     def _parse_products(self, filename):
-        ...
+        data = pd.read_csv(filename)
+        for _, row in data.iterrows():
+            from_facts_set = set(row.loc["from_facts"].split(','))
+            self.products[row["rule_id"]] = (from_facts_set, row["to_fact"], row["interpretation"])
 
     def forward_chaining(self, init_facts):
         reasoning = defaultdict(list)
