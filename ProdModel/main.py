@@ -106,13 +106,14 @@ class ProdModel:
         self.fact_checkbuttons = []
         self.fact_vars = []
         for fact, text in self.facts.items():
-            var = IntVar(value=0)
-            cb = Checkbutton(self.fact_text, text="%s(%s)" % (text, fact),
-                             variable=var, onvalue=1, offvalue=0)
-            self.fact_text.window_create("end", window=cb)
-            self.fact_text.insert("end", "\n")
-            self.fact_checkbuttons.append(cb)
-            self.fact_vars.append(var)
+            if fact in self.visible:
+                var = IntVar(value=0)
+                cb = Checkbutton(self.fact_text, text="%s(%s)" % (text, fact),
+                                 variable=var, onvalue=1, offvalue=0)
+                self.fact_text.window_create("end", window=cb)
+                self.fact_text.insert("end", "\n")
+                self.fact_checkbuttons.append(cb)
+                self.fact_vars.append(var)
 
         self.final_checkbuttons = []
         self.final_vars = []
@@ -184,7 +185,12 @@ class ProdModel:
         self.result_text.delete("1.0", END)
         for f in reasoning:
             if f in self.final_facts:
-                self.result_text.insert(INSERT, "%s(%s)\n" % (self.final_facts[f], f))
+                s = ""
+                reason = reasoning[f]
+                for r in reason:
+                    s += "%s \n и " % self.products[r][2]
+                s = s[:-1]
+                self.result_text.insert(INSERT, "%s\n" % s)
         self.result_text.configure(state="disabled")
 
     def init_backward(self):
