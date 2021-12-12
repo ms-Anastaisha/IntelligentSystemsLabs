@@ -19,13 +19,17 @@ class FactNode:
     def __init__(self, fact):
         self.node = fact
         self.childProductNodes = []
-        self.parentProductNodes = []
-        self.reasoning = []
-        self.resFlag = False
+        self.resolved = False
+
+    def __hash__(self):
+        return hash(self.node)
+
+    def __eq__(self, other):
+        return isinstance(other, FactNode) and self.node == other.node
 
     @property
-    def resolved(self):
-        return self.resFlag or (
+    def isResolved(self):
+        return self.resolved or (
                 len(self.childProductNodes) > 0 and any([node.resolved for node in self.childProductNodes]))
 
 
@@ -37,20 +41,23 @@ class SolutionTree:
 
     def resolve(self):
         treeFacts = {self.root}
+        visited = set()
         while len(treeFacts) > 0:
             fact = treeFacts.pop()
+            visited.add(fact)
             for pname, pbody in self.products.items():
                 if pbody[1] == fact.node:
                     productNode = ProductNode(pname, fact)
                     fact.childProductNodes.append(productNode)
                     for f in pbody[0]:
+                        if fact in visited: continue
                         fnode = FactNode(f)
                         productNode.childFactNodes.append(fnode)
                         if f not in self.init_facts:
                             treeFacts.add(fnode)
                         else:
-                            fnode.resFlag = True
-        if self.root.resolved:
+                            fnode.resolved = True
+        if self.root.isResolved:
             return self._answer()
         return "unresolved"
 
@@ -80,6 +87,7 @@ class ProdModel:
     def __init__(self, facts_file, products_file):
         self.window = Tk()
         self.window.title("Продукционная модель - выбор книг")
+        self.window.tk.call('wm', 'iconphoto', self.window._w, PhotoImage(file='book.png'))
 
         ## init
         self.visible = set()
@@ -103,6 +111,7 @@ class ProdModel:
         self.final_text.grid(column=0, row=1)
         self.result_text.grid(column=1, row=0)
 
+        ## checkbuttons
         self.fact_checkbuttons = []
         self.fact_vars = []
         for fact, text in self.facts.items():
@@ -154,18 +163,17 @@ class ProdModel:
             suitable_products = []
             for pname, pbody in self.products.items():
                 if pbody[0].issubset(init_facts):
-                    if len(init_facts) > 1 and len(pbody) == 1:
-                        continue
                     if pbody[1] in init_facts: continue
                     suitable_products.append((pname, *pbody))
             if len(suitable_products) == 0:
                 break
             suitable_products.sort(key=lambda value: len(value[1]), reverse=True)
             for p in suitable_products:
-                init_facts.add(p[2])
-                for f in p[1]:
-                    reasoning[p[2]].extend(reasoning[f])
-                reasoning[p[2]].append(p[0])
+                if p[2] not in init_facts:
+                    init_facts.add(p[2])
+                    for f in p[1]:
+                        reasoning[p[2]].extend(reasoning[f])
+                    reasoning[p[2]].append(p[0])
         return reasoning
 
     def backward_chaining(self, init_facts, final):
@@ -189,7 +197,7 @@ class ProdModel:
                 reason = reasoning[f]
                 for r in reason:
                     s += "%s \n и " % self.products[r][2]
-                s = s[:-1]
+                s = s[:-2]
                 self.result_text.insert(INSERT, "%s\n" % s)
         self.result_text.configure(state="disabled")
 
