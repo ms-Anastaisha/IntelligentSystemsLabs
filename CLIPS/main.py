@@ -4,7 +4,9 @@ from tkinter.font import Font
 from tkinter import filedialog as fd
 from tkinter import simpledialog as sd
 import clips
-from clips_functions import load_clips_file, create_clips_file, run_clips_chaining
+from clips_loading import load_clips_file
+from clips_generating import create_clips_file
+from clips_chaining import run_clips_chaining
 from utils import parse_products, parse_facts, text_output_write, read_file, text_output_clear
 
 filetypes = [("clips files", '*.clp')]
@@ -18,6 +20,8 @@ class ExpertSystem:
         self.window.tk.call('wm', 'iconphoto', self.window._w, PhotoImage(file='book.png'))
         self.myFont = Font(family='Helvetica', size=14)
         self.window.resizable(False, False)
+        self.status_label = Label(text="", font=self.myFont)
+        self.status_label.grid(row=2, columnspan=3, column=0)
 
         ## clips
         self.environment = clips.Environment()
@@ -82,20 +86,24 @@ class ExpertSystem:
         filename = fd.askopenfilename(filetypes=filetypes)
         load_clips_file(self.environment, filename, self.file_text)
         self.button_chaining.configure(state="normal")
+        self.status_label.config(text="Файл загружен", fg="#00f")
 
     def generate_clips(self):
         filename_for_generated = sd.askstring("Имя файла", "Введите имя файла:",
                                               parent=self.window)
         create_clips_file(self.facts, self.final_facts, self.products, filename_for_generated)
+        self.status_label.config(text="Файл сгенерирован", fg="#00f")
 
     def clips_chaining(self):
         init_facts = self._get_init_facts()
-        run_clips_chaining(self.environment, init_facts, self.facts)
+        run_clips_chaining(self.environment, init_facts, self.facts, self.result_text)
+        self.status_label.config(text="Вывод окончен", fg="#00f")
 
     def clips_files_clear(self):
         self.environment.clear()
         text_output_clear(self.file_text)
         self.button_chaining.configure(state="disabled")
+        self.status_label.config(text="Файлы очищены", fg="#00f")
 
 
 if __name__ == '__main__':
