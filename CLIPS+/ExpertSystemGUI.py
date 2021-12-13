@@ -29,8 +29,6 @@ class ExpertSystem:
         ## inits
         self.visible, self.facts, self.final_facts = parse_facts(facts_file)
         self.products = parse_products(products_file)
-        self.loaded_templates = []
-        self.clips_text = ""
 
         ## texts outputs
         self.fact_text = Text(self.window, width=50, font=self.myFont)

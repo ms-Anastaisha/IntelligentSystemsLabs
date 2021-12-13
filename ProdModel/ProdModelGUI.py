@@ -2,114 +2,40 @@ from collections import defaultdict, deque
 from tkinter import *
 import re
 import pandas as pd
+from tkinter.font import Font
 
-
-class ProductNode:
-    def __init__(self, product, factNode):
-        self.node = product
-        self.childFactNodes = []
-        self.parentFactNode = factNode
-
-    @property
-    def resolved(self):
-        return len(self.childFactNodes) > 0 and all([node.resolved for node in self.childFactNodes])
-
-
-class FactNode:
-    def __init__(self, fact):
-        self.node = fact
-        self.childProductNodes = []
-        self.resolved = False
-
-    def __hash__(self):
-        return hash(self.node)
-
-    def __eq__(self, other):
-        return isinstance(other, FactNode) and self.node == other.node
-
-    @property
-    def isResolved(self):
-        return self.resolved or (
-                len(self.childProductNodes) > 0 and any([node.resolved for node in self.childProductNodes]))
-
-
-class SolutionTree:
-    def __init__(self, init_facts, final_fact, products):
-        self.root = FactNode(final_fact)
-        self.products = products
-        self.init_facts = init_facts
-
-    def resolve(self):
-        treeFacts = {self.root}
-        visited = set()
-        while len(treeFacts) > 0:
-            fact = treeFacts.pop()
-            visited.add(fact)
-            for pname, pbody in self.products.items():
-                if pbody[1] == fact.node:
-                    productNode = ProductNode(pname, fact)
-                    fact.childProductNodes.append(productNode)
-                    for f in pbody[0]:
-                        if fact in visited: continue
-                        fnode = FactNode(f)
-                        productNode.childFactNodes.append(fnode)
-                        if f not in self.init_facts:
-                            treeFacts.add(fnode)
-                        else:
-                            fnode.resolved = True
-        if self.root.isResolved:
-            return self._answer()
-        return "unresolved"
-
-    def _answer(self):
-        answer = ""
-        treeFacts = [self.root]
-        while len(treeFacts) > 0:
-            fact = treeFacts.pop(0)
-            answer += fact.node + ' <= '
-            if len(fact.childProductNodes) == 0:
-                answer += "initial\n"
-            else:
-                for product in fact.childProductNodes:
-                    if product.resolved:
-                        for i in range(len(product.childFactNodes)):
-                            answer += product.childFactNodes[i].node
-                            treeFacts.append(product.childFactNodes[i])
-                            if i < len(product.childFactNodes) - 1:
-                                answer += ','
-                        answer += '(' + product.node + ')\n'
-                        break
-
-        return answer
+from backward_chaining import SolutionTree
+from utils import parse_products, parse_facts
 
 
 class ProdModel:
     def __init__(self, facts_file, products_file):
+        ## tkinter configuration
         self.window = Tk()
         self.window.title("Продукционная модель - выбор книг")
         self.window.tk.call('wm', 'iconphoto', self.window._w, PhotoImage(file='book.png'))
+        self.myFont = Font(family="Helvetica", size=14)
+        self.window.resizable(False, False)
 
         ## init
-        self.visible = set()
-        self.facts = {}
-        self.final_facts = {}
-        self.products = {}
-        self._parse_facts(facts_file)
-        self._parse_products(products_file)
+        self.visible, self.facts, self.final_facts = parse_facts(facts_file)
+        self.products = parse_products(products_file)
 
         ## control buttons
-        self.button_forward = Button(self.window, text="Прямой вывод", command=self.init_forward)
-        self.button_backward = Button(self.window, text="Обратный вывод", command=self.init_backward)
-        self.button_forward.grid(column=1, row=1, sticky=NW)
-        self.button_backward.grid(column=1, row=1, sticky=W)
+        self.button_forward = Button(self.window, text="Прямой вывод", command=self.init_forward, width=30,
+                                     font=self.myFont)
+        self.button_backward = Button(self.window, text="Обратный вывод", command=self.init_backward, width=30,
+                                      font=self.myFont)
+        self.button_forward.grid(column=0, row=0)
+        self.button_backward.grid(column=1, row=0)
 
         ## texts outputs
-        self.fact_text = Text(self.window)
-        self.final_text = Text(self.window)
-        self.result_text = Text(self.window)
-        self.fact_text.grid(column=0, row=0)
-        self.final_text.grid(column=0, row=1)
-        self.result_text.grid(column=1, row=0)
+        self.fact_text = Text(self.window, width=50, font=self.myFont)
+        self.final_text = Text(self.window, width=50, font=self.myFont)
+        self.result_text = Text(self.window, width=50, font=self.myFont)
+        self.fact_text.grid(column=0, row=1)
+        self.final_text.grid(column=1, row=1)
+        self.result_text.grid(column=2, row=1)
 
         ## checkbuttons
         self.fact_checkbuttons = []
@@ -225,5 +151,5 @@ class ProdModel:
 
 
 if __name__ == '__main__':
-    prod_model = ProdModel('./data/facts.txt', './data/productions.txt')
+    ProdModel('./data/facts.txt', './data/productions.txt')
     # print(prod_model.backward_chaining({"f-2","f-11", "f-5" }, "f-10"))
