@@ -26,7 +26,7 @@ def parse_facts(filename):
 
 def text_output_clear(text_widget):
     text_widget.configure(state="normal")
-    text_widget.delete("1.0", END)
+    text_widget.delete(1.0, END)
     text_widget.configure(state="disabled")
 
 

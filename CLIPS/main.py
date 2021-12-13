@@ -5,7 +5,7 @@ from tkinter import filedialog as fd
 from tkinter import simpledialog as sd
 import clips
 from clips_functions import load_clips_file, create_clips_file, run_clips_chaining
-from utils import parse_products, parse_facts, text_output_write, read_file
+from utils import parse_products, parse_facts, text_output_write, read_file, text_output_clear
 
 filetypes = [("clips files", '*.clp')]
 
@@ -17,6 +17,7 @@ class ExpertSystem:
         self.window.title("Экспертная система - выбор книг")
         self.window.tk.call('wm', 'iconphoto', self.window._w, PhotoImage(file='book.png'))
         self.myFont = Font(family='Helvetica', size=14)
+        self.window.resizable(False, False)
 
         ## clips
         self.environment = clips.Environment()
@@ -79,15 +80,13 @@ class ExpertSystem:
 
     def download(self):
         filename = fd.askopenfilename(filetypes=filetypes)
-        text = read_file(filename)
-        text_output_write(self.file_text, text)
-        load_clips_file(self.environment, filename)
+        load_clips_file(self.environment, filename, self.file_text)
         self.button_chaining.configure(state="normal")
 
     def generate_clips(self):
         filename_for_generated = sd.askstring("Имя файла", "Введите имя файла:",
                                               parent=self.window)
-        create_clips_file(self.facts, self.products, filename_for_generated)
+        create_clips_file(self.facts, self.final_facts, self.products, filename_for_generated)
 
     def clips_chaining(self):
         init_facts = self._get_init_facts()
@@ -95,6 +94,7 @@ class ExpertSystem:
 
     def clips_files_clear(self):
         self.environment.clear()
+        text_output_clear(self.file_text)
         self.button_chaining.configure(state="disabled")
 
 

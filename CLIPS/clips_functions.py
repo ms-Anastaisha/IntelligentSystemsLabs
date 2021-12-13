@@ -1,10 +1,117 @@
 from pathlib import Path
 import clips
 import re
-from utils import text_output_clear, text_output_write
+from utils import text_output_clear, text_output_write, read_file
+import os
+
+CLIPS_INIT = """(deftemplate ioproxy
+    (slot fact-id)
+    (multislot answers)
+    (multislot messages)
+    (slot reaction)
+    (slot value)
+    (slot restore)
+)
+
+(deffacts proxy-fact
+    (ioproxy
+        (fact-id 0112)
+        (value none)
+        (messages)
+    )
+)
+
+(defrule clear-messages
+    (declare (salience 90))
+    ?clear-msg-flg <- (clearmessage)
+    ?proxy <- (ioproxy)
+    =>
+    (modify ?proxy (messages))
+    (retract ?clear-msg-flg)
+)
+
+(defrule set-output-and-halt
+    (declare (salience 99))
+    ?current-message <- (sendmessagehalt ?new-msg)
+    ?proxy <- (ioproxy (messages $?msg-list))
+    =>
+    (modify ?proxy (messages ?new-msg))
+    (retract ?current-message)
+    (halt)
+)
+
+(defrule append-output-and-halt
+    (declare (salience 99))
+    ?current-message <- (appendmessagehalt $?new-msg)
+    ?proxy <- (ioproxy (messages $?msg-list))
+    =>
+    (modify ?proxy (messages $?msg-list $?new-msg))
+    (retract ?current-message)
+    (halt)
+)
+
+(defrule set-output-and-proceed
+    (declare (salience 99))
+    ?current-message <- (sendmessage ?new-msg)
+    ?proxy <- (ioproxy)
+    =>
+    (modify ?proxy (messages ?new-msg))
+    (retract ?current-message)
+)
+
+(defrule append-output-and-proceed
+    (declare (salience 99))
+    ?current-message <- (appendmessage ?new-msg)
+    ?proxy <- (ioproxy (messages $?msg-list))
+    =>
+    (modify ?proxy (messages $?msg-list ?new-msg))
+    (retract ?current-message)
+)
+
+(deftemplate book
+(slot data)
+) 
+
+(deftemplate plot
+(slot data)
+) 
+
+(deftemplate author
+(slot data)
+) 
+
+(deftemplate genre
+(slot data)
+) 
+
+(deftemplate volume
+(slot data)
+) 
+
+(deftemplate language
+(slot data)
+) 
+
+(deftemplate school
+(slot data)
+) 
+
+(deftemplate duration
+(slot data)
+) 
+
+(deftemplate age
+(slot data)
+) 
+
+(deftemplate mood
+(slot data)
+) 
+"""
 
 
-def load_clips_file(environment, filename):
+#####################Loading clips files
+def load_clips_file(environment, filename, text_widget):
     if (len(list(environment.facts())) == 0 and
             len(list(environment.rules())) == 0 and
             len(list(environment.templates())) == 0 and
@@ -12,6 +119,12 @@ def load_clips_file(environment, filename):
         environment.load(filename)
     else:
         handle_multiple_files(environment, filename)
+    filetemp = 'temp.clp'
+    environment.save(filetemp)
+    text = read_file(filetemp)
+    text_output_clear(text_widget)
+    text_output_write(text_widget, text)
+    os.remove(filetemp)
     environment.reset()
 
 
@@ -23,10 +136,13 @@ def handle_multiple_files(environment, filename):
             if line == '\n':
                 if len(construct_lines) == 0: continue
                 construct = find_construct(environment, construct_lines)
-                if construct is None: continue
-                if not compare_constructs(construct_lines, construct):
-                    rename_construct(construct_lines, basename)
-                    insert_construct(environment, construct_lines)
+                if construct is not None:
+                    if not compare_constructs(construct_lines, construct):
+                        rename_construct(construct_lines, basename)
+                    else:
+                        construct_lines = []
+                        continue
+                insert_construct(environment, construct_lines)
                 construct_lines = []
             else:
                 construct_lines.append(line)
@@ -47,7 +163,8 @@ def find_construct(environment, construct_lines):
 
 
 def compare_constructs(construct_lines, construct2):
-    return " ".join(re.sub("\n", "", construct_lines)) == construct2
+    construct1 = re.sub("\n", "", " ".join(construct_lines))
+    return "".join(construct1.split()) == "".join(construct2.split())
 
 
 def rename_construct(construct_lines, postfix):
@@ -56,14 +173,36 @@ def rename_construct(construct_lines, postfix):
 
 
 def insert_construct(environment, construct_lines):
-    # construct_type, construct_name = construct_lines[0].split()
-    # construct_type = construct_type[1:]
-    construct = "".join(construct_lines)
+    construct = " ".join(construct_lines)
     environment.build(construct)
 
-def create_clips_file(facts: dict, rules: dict, output_file: str = "rules_clips.clp") -> None:
-    clips_facts = {k: fact2clips(v) for k, v in facts.items()}
-    clips_lines = []
+
+#####################Generating clips files
+def fact2clips(fact: str) -> str:
+    word = fact.split()[0]
+    value_dict = {
+        'книга': '(book (data "%s"))' % fact,
+        'жанр': '(genre (data "%s"))' % fact,
+        'в': '(plot (data "%s"))' % fact,
+        'для': '(mood (data "%s"))' % fact,
+        'автор': '(author (data "%s"))' % fact,
+        'авторы': '(author (data "%s"))' % fact,
+        'подходит': '(age (data "%s"))' % fact,
+        'объем': '(volume (data "%s"))' % fact,
+        'язык': '(language (data "%s"))' % fact,
+        'входит': '(school (data "%s"))' % fact,
+        'не': '(school (data "%s"))' % fact,
+        'на': '(duration (data "%s"))' % fact
+    }
+    return value_dict[word]
+
+
+def create_clips_file(facts: dict, final_facts: dict, rules: dict, output_file: str = "rules_clips.clp") -> None:
+    merged_facts = {}
+    merged_facts.update(facts)
+    merged_facts.update(final_facts)
+    clips_facts = {k: fact2clips(v) for k, v in merged_facts.items()}
+    clips_lines = [CLIPS_INIT + "\n\n"]
     rule_cnt = 0
     for _, rule in rules.items():
         to_fact = rule[1]
@@ -73,17 +212,18 @@ def create_clips_file(facts: dict, rules: dict, output_file: str = "rules_clips.
         s = ""
         for fact in from_fact_set:
             s += facts[fact] + ", "
-            clips_lines.appned(clips_facts[fact] + "\n")
+            clips_lines.append(clips_facts[fact] + "\n")
         s = s[:-2]
-        s += " => " + facts[to_fact]
+        s += " => " + merged_facts[to_fact]
         clips_lines.append("=>\n")
         clips_lines.append("(assert %s)\n" % clips_facts[to_fact])
         clips_lines.append('(assert (appendmessagehalt "%s"))\n)\n\n' % s)
 
-    with open(output_file, 'w') as out:
+    with open(output_file, 'w', encoding='utf-8-sig') as out:
         out.writelines(clips_lines)
 
 
+#######################Running clips
 def run_clips_chaining(clips, from_facts, facts, text_widget):
     text_output_clear(text_widget)
     clips.reset()
@@ -120,25 +260,3 @@ def handle_user_response(clips, text_widget):
         clips.eval("(assert (clearmessage))")
 
     return True
-
-
-def fact2clips(fact: str) -> str:
-    words = fact.split()
-    if words[0] == 'книга':
-        return "(book (data %s))" % " ".join(words[1:])
-    elif words[0] == 'жанр':
-        return "(genre (data %s))" % " ".join(words[1:])
-    elif words[0] == 'в':
-        return "(plot (data %s))" % fact
-    elif words[0] == 'для':
-        return "(mood (data %s))" % fact
-    elif words[0] == 'автор':
-        return "(author (data %s))" % " ".join(words[1:])
-    elif words[0] == 'подходит':
-        return "(age (data %s))" % fact
-    elif words[0] == 'объем':
-        return "(volume (data %s))" % fact
-    elif words[0] == 'язык':
-        return "(language (data %s))" % fact
-    elif words[0] == 'входит' or words[0] == 'не':
-        return "(school (data %s))" % fact
