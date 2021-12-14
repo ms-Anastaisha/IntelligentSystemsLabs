@@ -1,87 +1,108 @@
-from collections import defaultdict, deque
 from tkinter import *
 import re
+from tkinter.font import Font
+from tkinter import filedialog as fd
+from tkinter import simpledialog as sd
+import clips
+from clips_loading import load_clips_file
+from clips_generating import create_clips_file
+from clips_chaining import run_clips_chaining
+from utils import parse_products, parse_facts, text_output_write, read_file, text_output_clear
+
+filetypes = [("clips files", '*.clp')]
 
 
-
-class ProdModel:
-    def __init__(self, filename):
+class ExpertSystemCoeff:
+    def __init__(self, facts_file, products_file):
+        ## tkinter configuration
         self.window = Tk()
         self.window.title("Экспертная система - выбор книг")
-        self.facts = {}
-        self.final_facts = {}
-        self.products = {}
-        self.parse_facts(filename)
+        self.window.tk.call('wm', 'iconphoto', self.window._w, PhotoImage(file='book.png'))
+        self.myFont = Font(family='Helvetica', size=14)
+        self.window.resizable(False, False)
+        self.status_label = Label(text="", font=self.myFont)
+        self.status_label.grid(row=2, columnspan=3, column=0)
 
-        self.fact_text = Text(self.window)
+        ## clips
+        self.environment = clips.Environment()
 
-        self.final_text = Text(self.window)
-        self.result_text = Text(self.window)
+        ## inits
+        self.visible, self.facts, self.final_facts = parse_facts(facts_file)
+        self.products = parse_products(products_file)
 
-        self.button_download = Button(self.window, text="Загрузить clips файл", command=self.download)
-        self.button_chaining = Button(self.window, text="Вывод", command=self.clips_chaining)
-        self.button_generate = Button(self.window, text="Сгенерировать clips файл", command=self.generate_clips)
+        ## texts outputs
+        self.fact_text = Text(self.window, width=50, font=self.myFont)
+        self.file_text = Text(self.window, width=50, font=self.myFont)
+        self.result_text = Text(self.window, width=50, font=self.myFont)
+        self.fact_text.grid(column=0, row=1)
+        self.result_text.grid(column=2, row=1)
+        self.file_text.grid(column=1, row=1)
 
-        self.button_download.grid(column=1, row=1, sticky=NW)
-        self.button_chaining.grid(column=1, row=1, sticky=W)
-        self.button_generate.grid(column=1, row=1, sticky=SW)
+        ## control buttons
+        self.button_download = Button(self.window, text="Загрузить clips файл", command=self.download, width=23,
+                                      font=self.myFont)
+        self.button_chaining = Button(self.window, text="Clips Вывод", command=self.clips_chaining, width=23,
+                                      font=self.myFont)
+        self.button_generate = Button(self.window, text="Сгенерировать clips файл", command=self.generate_clips,
+                                      width=23, font=self.myFont)
+        self.button_clear_files = Button(self.window, text="Очистить Clips файлы", command=self.clips_files_clear,
+                                         width=23, font=self.myFont)
+        self.button_download.grid(column=0, row=0, sticky=NE, padx=7)
+        self.button_chaining.grid(column=1, row=0, sticky=NE, padx=7)
+        self.button_clear_files.grid(column=1, row=0, sticky=NW, padx=7)
+        self.button_generate.grid(column=0, row=0, sticky=NW, padx=7)
 
-        self.fact_text.grid(column=0, row=0)
-        self.final_text.grid(column=0, row=1)
-        self.result_text.grid(column=1, row=0)
-
+        ## checkbuttons
         self.fact_checkbuttons = []
         self.fact_vars = []
         for fact, text in self.facts.items():
-            var = IntVar(value=0)
-            cb = Checkbutton(self.fact_text, text="%s(%s)" % (text, fact),
-                             variable=var, onvalue=1, offvalue=0)
-            self.fact_text.window_create("end", window=cb)
-            self.fact_text.insert("end", "\n")
-            self.fact_checkbuttons.append(cb)
-            self.fact_vars.append(var)
-
-        self.final_checkbuttons = []
-        self.final_vars = []
-        for fact, text in self.final_facts.items():
-            var = IntVar(value=0)
-            cb = Checkbutton(self.final_text, text="%s(%s)" % (text, fact),
-                             variable=var, onvalue=1, offvalue=0)
-            self.final_text.window_create("end", window=cb)
-            self.final_text.insert("end", "\n")
-            self.final_checkbuttons.append(cb)
-            self.final_vars.append(var)
+            if fact in self.visible:
+                var = IntVar(value=0)
+                cb = Checkbutton(self.fact_text, text="%s(%s)" % (text, fact),
+                                 variable=var, onvalue=1, offvalue=0, font=self.myFont)
+                self.fact_text.window_create("end", window=cb)
+                self.fact_text.insert("end", "\n")
+                self.fact_checkbuttons.append(cb)
+                self.fact_vars.append(var)
 
         self.fact_text.configure(state="disabled")
-        self.final_text.configure(state="disabled")
         self.result_text.configure(state="disabled")
-
+        self.button_chaining.configure(state="disabled")
         self.window.mainloop()
 
-    def parse_facts(self, filename):
-        with open(filename, 'r', encoding='utf8') as f:
-            for line in f:
-                line = line.strip().split(';')
-                if len(line) == 1: continue
-                if line[0][0] == 'f':
-                    if len(line) == 2:
-                        self.facts[line[0]] = line[1]
-                    else:
-                        self.final_facts[line[0]] = line[1]
-                else:
-                    line[1] = line[1].split(',')
-                    self.products[line[0]] = (set(line[1]), line[2])
+    def _get_init_facts(self):
+        init_facts = []
+        for cb, var in zip(self.fact_checkbuttons, self.fact_vars):
+            text = cb.cget("text")
+            value = var.get()
+            result = re.search(r"\(([A-Za-z0-9\-]+)\)", text).group(1)
+            if value == 1:
+                init_facts.append(result)
+        return init_facts
 
     def download(self):
-        pass
+        filename = fd.askopenfilename(filetypes=filetypes)
+        load_clips_file(self.environment, filename, self.file_text)
+        self.button_chaining.configure(state="normal")
+        self.status_label.config(text="Файл загружен", fg="#00f")
 
     def generate_clips(self):
-        pass
+        filename_for_generated = sd.askstring("Имя файла", "Введите имя файла:",
+                                              parent=self.window)
+        create_clips_file(self.facts, self.final_facts, self.products, filename_for_generated)
+        self.status_label.config(text="Файл сгенерирован", fg="#00f")
 
     def clips_chaining(self):
-        pass
+        init_facts = self._get_init_facts()
+        run_clips_chaining(self.environment, init_facts, self.facts, self.result_text)
+        self.status_label.config(text="Вывод окончен", fg="#00f")
+
+    def clips_files_clear(self):
+        self.environment.clear()
+        text_output_clear(self.file_text)
+        self.button_chaining.configure(state="disabled")
+        self.status_label.config(text="Файлы очищены", fg="#00f")
 
 
 if __name__ == '__main__':
-    prod_model = ProdModel('C:/Users/Anastaisha/PycharmProjects/ProdModel/facts.txt')
-    # print(prod_model.backward_chaining({"f-2","f-11", "f-5" }, "f-10"))
+    ExpertSystemCoeff('data/facts.txt', 'data/productions.txt')

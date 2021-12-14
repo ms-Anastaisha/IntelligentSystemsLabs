@@ -22,14 +22,15 @@ def fact2template(fact: str) -> str:
     return value_dict[word]
 
 
-def run_clips_chaining(environment, from_facts, facts, text_widget):
+def run_clips_chaining(environment, from_facts, from_weights, facts, text_widget):
     text_output_clear(text_widget)
     environment.reset()
     environment.run()
     handle_user_response(environment, text_widget)
-    for ff in from_facts:
+    for ff, fw in zip(from_facts, from_weights):
         template = environment.find_template(fact2template(facts[ff]))
-        template.assert_fact(data=facts[ff])
+        template.assert_fact(data=facts[ff],
+                             weight=".2f" % fw)
     while True:
         environment.run()
         end = handle_user_response(environment, text_widget)
