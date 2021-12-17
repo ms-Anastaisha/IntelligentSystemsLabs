@@ -69,170 +69,49 @@ CLIPS_INIT = """(deftemplate ioproxy
 (slot weight)
 ) 
 
-(defrule merge_books
-	(declare (salience 98))
-	?n1<-(book (data ?name1) (weight ?w1))
-	?n2<-(book (data ?name2) (weight ?w2))
-	(test (= 0 (str-compare ?name1 ?name2)))
-	(test (<> ?w1 ?w2))
-	=>
-	(modify ?n1 (weight (* (+ ?w1 ?w2) 0.5)))
-	(retract ?n2)
-	(assert (appendmessagehalt (str-cat ?name1" (" ?w1 ", " ?w2 ") => " (* (+ ?w1 ?w2) 0.5))))
-)
-
 (deftemplate plot
 (slot data)
 (slot weight)
 ) 
-
-(defrule merge_plots
-	(declare (salience 98))
-	?n1<-(plot (data ?name1) (weight ?w1))
-	?n2<-(plot (data ?name2) (weight ?w2))
-	(test (= 0 (str-compare ?name1 ?name2)))
-	(test (<> ?w1 ?w2))
-	=>
-	(modify ?n1 (weight (* (+ ?w1 ?w2) 0.5)))
-	(retract ?n2)
-	(assert (appendmessagehalt (str-cat ?name1" (" ?w1 ", " ?w2 ") => " (* (+ ?w1 ?w2) 0.5))))
-)
 
 (deftemplate author
 (slot data)
 (slot weight)
 ) 
 
-(defrule merge_authors
-	(declare (salience 98))
-	?n1<-(author (data ?name1) (weight ?w1))
-	?n2<-(author (data ?name2) (weight ?w2))
-	(test (= 0 (str-compare ?name1 ?name2)))
-	(test (<> ?w1 ?w2))
-	=>
-	(modify ?n1 (weight (* (+ ?w1 ?w2) 0.5)))
-	(retract ?n2)
-	(assert (appendmessagehalt (str-cat ?name1" (" ?w1 ", " ?w2 ") => " (* (+ ?w1 ?w2) 0.5))))
-)
-
 (deftemplate genre
 (slot data)
 (slot weight)
 ) 
 
-(defrule merge_genres
-	(declare (salience 98))
-	?n1<-(genre (data ?name1) (weight ?w1))
-	?n2<-(genre (data ?name2) (weight ?w2))
-	(test (= 0 (str-compare ?name1 ?name2)))
-	(test (<> ?w1 ?w2))
-	=>
-	(modify ?n1 (weight (* (+ ?w1 ?w2) 0.5)))
-	(retract ?n2)
-	(assert (appendmessagehalt (str-cat ?name1" (" ?w1 ", " ?w2 ") => " (* (+ ?w1 ?w2) 0.5))))
-)
-
 (deftemplate volume
 (slot data)
 (slot weight)
 ) 
-
-(defrule merge_volumes
-	(declare (salience 98))
-	?n1<-(volume (data ?name1) (weight ?w1))
-	?n2<-(volume (data ?name2) (weight ?w2))
-	(test (= 0 (str-compare ?name1 ?name2)))
-	(test (<> ?w1 ?w2))
-	=>
-	(modify ?n1 (weight (* (+ ?w1 ?w2) 0.5)))
-	(retract ?n2)
-	(assert (appendmessagehalt (str-cat ?name1" (" ?w1 ", " ?w2 ") => " (* (+ ?w1 ?w2) 0.5))))
-)
-
 (deftemplate language
 (slot data)
 (slot weight)
 ) 
-
-(defrule merge_languages
-	(declare (salience 98))
-	?n1<-(language (data ?name1) (weight ?w1))
-	?n2<-(language (data ?name2) (weight ?w2))
-	(test (= 0 (str-compare ?name1 ?name2)))
-	(test (<> ?w1 ?w2))
-	=>
-	(modify ?n1 (weight (* (+ ?w1 ?w2) 0.5)))
-	(retract ?n2)
-	(assert (appendmessagehalt (str-cat ?name1" (" ?w1 ", " ?w2 ") => " (* (+ ?w1 ?w2) 0.5))))
-)
 
 (deftemplate school
 (slot data)
 (slot weight)
 ) 
 
-(defrule merge_schools
-	(declare (salience 98))
-	?n1<-(school (data ?name1) (weight ?w1))
-	?n2<-(school (data ?name2) (weight ?w2))
-	(test (= 0 (str-compare ?name1 ?name2)))
-	(test (<> ?w1 ?w2))
-	=>
-	(modify ?n1 (weight (* (+ ?w1 ?w2) 0.5)))
-	(retract ?n2)
-	(assert (appendmessagehalt (str-cat ?name1" (" ?w1 ", " ?w2 ") => " (* (+ ?w1 ?w2) 0.5))))
-)
-
 (deftemplate age
 (slot data)
 (slot weight)
 ) 
-
-(defrule merge_ages
-	(declare (salience 98))
-	?n1<-(age (data ?name1) (weight ?w1))
-	?n2<-(age (data ?name2) (weight ?w2))
-	(test (= 0 (str-compare ?name1 ?name2)))
-	(test (<> ?w1 ?w2))
-	=>
-	(modify ?n1 (weight (* (+ ?w1 ?w2) 0.5)))
-	(retract ?n2)
-	(assert (appendmessagehalt (str-cat ?name1" (" ?w1 ", " ?w2 ") => " (* (+ ?w1 ?w2) 0.5))))
-)
 
 (deftemplate mood
 (slot data)
 (slot weight)
 ) 
 
-(defrule merge_moods
-	(declare (salience 98))
-	?n1<-(mood (data ?name1) (weight ?w1))
-	?n2<-(mood (data ?name2) (weight ?w2))
-	(test (= 0 (str-compare ?name1 ?name2)))
-	(test (<> ?w1 ?w2))
-	=>
-	(modify ?n1 (weight (* (+ ?w1 ?w2) 0.5)))
-	(retract ?n2)
-	(assert (appendmessagehalt (str-cat ?name1" (" ?w1 ", " ?w2 ") => " (* (+ ?w1 ?w2) 0.5))))
-)
-
 (deftemplate duration
 (slot data)
 (slot weight)
 ) 
-
-(defrule merge_durations
-	(declare (salience 98))
-	?n1<-(duration (data ?name1) (weight ?w1))
-	?n2<-(duration (data ?name2) (weight ?w2))
-	(test (= 0 (str-compare ?name1 ?name2)))
-	(test (<> ?w1 ?w2))
-	=>
-	(modify ?n1 (weight (* (+ ?w1 ?w2) 0.5)))
-	(retract ?n2)
-	(assert (appendmessagehalt (str-cat ?name1" (" ?w1 ", " ?w2 ") => " (* (+ ?w1 ?w2) 0.5))))
-)
 """
 
 
@@ -311,12 +190,12 @@ def create_clips_file(facts: dict, final_facts: dict, rules: dict, output_file: 
         for fact in from_fact_set:
             s += facts[fact] + ' ("%s"), ' % fact2weight(facts[fact])
             clips_lines.append(clips_facts[fact] + "\n")
-            clips_lines.append('(test ( < 0.2 %s ))\n' % fact2weight(facts[fact]))
+            clips_lines.append('(test ( < 0.3 %s ))\n' % fact2weight(facts[fact]))
 
         s = s[:-2]
         s += " => " + merged_facts[to_fact]
         weight, weight_string = get_weight({facts[fact] for fact in from_fact_set})
-        clips_lines.append('(test ( < 0.2 %s ))\n' % weight_string)
+        clips_lines.append('(test ( < 0.3 %s ))\n' % weight_string)
         clips_lines.append("=>\n")
         to_fact_weight = clips_facts[to_fact].replace(fact2weight(merged_facts[to_fact]), weight_string)
         clips_lines.append("(assert %s)\n" % to_fact_weight)

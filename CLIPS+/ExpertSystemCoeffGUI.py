@@ -103,7 +103,7 @@ class ExpertSystemCoeff:
 
     def clips_chaining(self):
         init_facts, init_weights = self._get_init_facts()
-        run_clips_chaining(self.environment, init_facts, init_weights, self.facts, self.result_text)
+        run_clips_chaining(self.environment, init_facts, init_weights, self.facts, self.result_text, self.window)
         self.status_label.config(text="Вывод окончен", fg="#00f")
 
     def clips_files_clear(self):
