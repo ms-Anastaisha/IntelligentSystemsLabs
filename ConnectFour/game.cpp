@@ -4,179 +4,267 @@
 
 #include "game.h"
 
-char Game::check(const State &state) {
-    auto res = check_horizontal(state);
-    res = res == '*' ? check_vertical(state) : res;
-    res = res == '*' ? check_left_diagonal(state) : res;
-    res = res == '*' ? check_right_diagonal(state) : res;
-    bool tie = true;
-    for (int i = 0; i < 7; ++i) {
-        tie &= state[0][i] != '*';
-    }
-    if (tie)
-        return '_';
-    return res;
-}
-
-void Game::make_turn(int column, char turn) {
-    if (main_state[0][column] != '*'){
-        cout<<"column is not available!!!" << endl;
-        return;
-    }
-
-    auto index = find_available_index(column);
-    main_state[index][column] = turn;
-    isCurrentPlayerTurn = !isCurrentPlayerTurn;
-    auto win = check(main_state);
-    if (win != '*') {
-        isOver = true;
-        if (win == '_')
-            isTie = true;
-        if (win == player)
-            playerWin = true;
-        else
-            playerWin = false;
+Game::Game() {
+    winner = 0;
+    winningMove = -1;
+    SEARCH_Y = {0, 0, -1, 1, -1, 1, -1, 1};
+    SEARCH_X = {-1, 1, 0, 0, 1, -1, -1, 1};
+    for (int y = 0; y < HEIGHT; y++) {
+        for (int x = 0; x < WIDTH; x++) {
+            game[y][x] = 0;
+        }
     }
 }
 
-int Game::find_available_index(int column) {
-    for (int i = 5; i >= 0; --i)
-        if (main_state[i][column] == '*')
-            return i;
-    return -1;
+bool Game::move_is_valid(int move) {
+    if (move < 0 || move > WIDTH)
+        return false;
+    return game[0][move] == 0;
 }
 
-vector<int> Game::possible_columns(const State &state) {
-    vector<int> columns;
-    for (int i = 0; i < 7; ++i)
-        if (state[0][i] == '*')
-            columns.push_back(i);
-    return columns;
+int Game::get_winner() {
+    return winner;
 }
 
+void Game::show(bool error) {
+    cout << endl << "             1   2   3   4   5   6   7 ";
+    cout << endl << "           |---------------------------|" << endl;
+    cout << "           |";
 
-bool Game::cmp(char first, char second, char third, char fourth) {
-    return first != '*' && first == second && first == third && first == fourth;
-}
+    for (int y = 0; y < HEIGHT; y++) {
+        for (int x = 0; x < WIDTH; x++) {
+            if (game[y][x] == 1)
+                cout << " X |";
+            else if (game[y][x] == -1)
+                cout << " O |";
+            else
+                cout << " * |";
+        }
 
-char Game::check_horizontal(const State &state) {
-    for (int i = 0; i < state.size(); ++i)
-        for (int j = 0; j <= state.size() - 4; ++j)
-            if (cmp(state[i][j], state[i][j + 1], state[i][j + 2], state[i][j + 3]))
-                return state[i][j];
-    return '*';
-}
+        cout << endl << "           |---------------------------|" << endl;
 
-char Game::check_vertical(const State &state) {
-    for (int i = 0; i <= state.size() - 4; i++)
-        for (int j = 0; j < state[0].size(); j++)
-            if (cmp(state[i][j], state[i + 1][j], state[i + 2][j], state[i + 3][j]))
-                return state[i][j];
-    return '*';
-}
-
-char Game::check_right_diagonal(const State &state) {
-    for (int i = 0; i <= state.size() - 4; i++)
-        for (int j = 0; j <= state.size() - 4; j++)
-            if (cmp(state[i][j + 3], state[i + 1][j + 2], state[i + 2][j + 1], state[i + 3][j]))
-                return state[i][j + 3];
-    return '*';
-}
-
-char Game::check_left_diagonal(const State &state) {
-    for (int i = 0; i < 3; i++)
-        for (int j = 6; j > 2; j--)
-            if (cmp(state[i + 3][j], state[i + 2][j - 1], state[i + 1][j - 2], state[i][j - 3]))
-                return state[i + 3][j];
-    return '*';
-}
-
-Game::Game(char playerTurn, char compTurn) : player(playerTurn), comp(compTurn) {
-    isCurrentPlayerTurn = player == 'X';
-}
-
-void Game::show() {
-    cout << "=====Game======" << endl;
-    for (int i = 0; i < main_state.size(); ++i) {
-        cout << "    ";
-        for (int j = 0; j < main_state[0].size(); ++j)
-            cout << main_state[i][j];
-        cout << "    \n";
+        //Output the bottom of the game.
+        if (y + 1 < HEIGHT)
+            cout << "           |";
+        else {
+            if (winner != 0) {
+                if (get_winner() == botTurn)
+                    cout << "          Triumph of artificial intelligence !!";
+                else
+                    cout << "          Argh! Skin-tube won :(";
+            } else if (error) {
+                cout << "           !! INVALID MOVE, TRY AGAIN !!";
+            } else {
+                cout << "           |                           |";
+            }
+        }
     }
-    cout << "    ";
-    for (int i = 0; i < main_state[0].size(); ++i) {
-        cout << i;
-    }
-    cout << "    \n";
-    cout << "===============\n";
-    cout << "Enter valid column: " << endl;
+    cout << endl;
 }
 
-
-map<State, int> Computer::generate_successors(const State &state, char turn) {
-    map<State, int> successors;
-    for (auto column: Game::possible_columns(state)) {
-        successors[make_turn(column, state, turn)] = column;
+int Game::find_available_index(int slot) {
+    int i = 0;
+    for (i = 0; i < HEIGHT; i++) {
+        if (game[i][slot] != 0)
+            break;
     }
-    return successors;
+    return i;
 }
 
-State Computer::make_turn(int column, const State &state, int turn) {
-    State new_state(state);
-    auto index = game.find_available_index(column);
-    new_state[index][column] = turn;
-    return new_state;
-}
-
-int Computer::min_max(const State &state, int depth, int alpha, int beta, bool maximizing) {
-    auto res = game.check(state);
-    if (res != '*') {
-        if (res == '_')
-            return 0;
-        if (res == game.player)
-            return -1;
-        if (res == game.comp)
-            return 1;
-    }
-    if (depth > 7)
+int Game::move(int player, int slot) {
+    if (!move_is_valid(slot)) {
         return 0;
-    if (maximizing) {
-        int best_score = INT_MIN;
-        auto successors = generate_successors(state, game.comp);
-        for (auto succ: successors) {
-            auto score = min_max(succ.first, depth + 1, alpha, beta, false);
-            best_score = score > best_score ? score : best_score;
-            if (best_score > alpha)
-                alpha = best_score;
-            if (alpha >= beta)
-                break;
-        }
-        return best_score;
-    } else {
-        int best_score = INT_MAX;
-        auto successors = generate_successors(state, game.player);
-        for (auto succ: successors) {
-            auto score = min_max(succ.first, depth + 1, alpha, beta, true);
-            best_score = score < best_score ? score : best_score;
-            if (best_score < beta)
-                beta = best_score;
-            if (alpha >= beta)
-                break;
-        }
-        return best_score;
     }
+    int index = find_available_index(slot);
+
+    if (--index >= 0) {
+        game[index][slot] = player;
+
+        if (this->check_win(slot) == WIN) {
+            winner = player;
+            winningMove = slot;
+        }
+    }
+
+    return 1;
 }
 
-void Computer::make_best_turn() {
-    int best_score = INT_MIN;
-    auto best_turn = -1;
-    auto successors = generate_successors(game.main_state, game.comp);
-    for (auto succ: successors) {
-        auto score = min_max(succ.first, 0, INT_MIN, INT_MAX, false);
-        if (score > best_score) {
-            best_score = score;
-            best_turn = succ.second;
+int Game::unmove(int slot) {
+    int removed = 0;
+
+    if (slot == winningMove) {
+        winner = 0;
+        winningMove = -1;
+    }
+
+    for (int i = 0; removed == 0 && i < HEIGHT; i++) {
+        if (game[i][slot] != 0) {
+            game[i][slot] = 0;
+            removed = 1;
         }
     }
-    game.make_turn(best_turn, game.comp);
+
+    return removed;
 }
+
+
+int Game::computer_move(int player) {
+    if (winner != 0) {
+        return 0;
+    }
+
+    srand(time(NULL));
+    int bestMove = 4;
+    int currScore = 0;
+    int bestScore = INT_MIN;
+    int worstScore = INT_MAX;
+    array<int, 7> moveScores = {0, 0, 0, 0, 0, 0, 0};
+    vector<int> bestScoreMoves;
+
+    for (int move = 0; move < WIDTH; move++) {
+        if (this->move_is_valid(move)) {
+            currScore = this->min_max(move, DEPTH, INT_MIN, INT_MAX, player, 0);
+            moveScores[move] = currScore;
+
+            if (currScore > bestScore) {
+                bestMove = move;
+                bestScore = currScore;
+            } else if (currScore < worstScore) {
+                worstScore = currScore;
+            }
+        }
+    }
+
+    for (int i = 0; i < WIDTH; i++) {
+        if (moveScores[i] == bestScore) {
+            bestScoreMoves.push_back(i);
+        }
+    }
+
+    if (bestScoreMoves.size() > 1) {
+        do {
+            bestMove = rand() % bestScoreMoves.size();
+        } while (!this->move(player, bestScoreMoves[bestMove]));
+    } else
+        this->move(player, bestScoreMoves[0]);
+
+    return 1;
+}
+
+int Game::min_max(int move, int depth, int alpha, int beta, int player, int boardScore) {
+    this->move(player, move);
+    boardScore += this->check_win(move);
+
+    if (depth == 0 || winner != 0) {
+        this->unmove(move);
+        return boardScore;
+    }
+    int bestScore = INT_MIN;
+
+    for (int childMove = 0; childMove < WIDTH; childMove++) {
+        if (this->move_is_valid(childMove)) {
+            int v = min_max(childMove, depth - 1, beta * -1, alpha * -1, player * -1, boardScore * -1);
+            bestScore = max(bestScore, v);
+            alpha = max(bestScore, v);
+            if (alpha >= beta)
+                break;
+        }
+    }
+    this->unmove(move);
+    return (bestScore * -1) - 10000;
+}
+
+
+int Game::check_win(int slot) {
+    int y = find_available_index(slot);
+
+    int player = game[y][slot];
+    int yt, xt;
+    int score = 0, count = 1, countMax = 1;
+    int verticalHeight = 0, verticalHeightOfMax = 0;
+    int dir1, dir2;
+    bool inter = false;
+
+    for (int axis = 0; axis < NUM_OF_DIRECTIONS; axis += 2) {
+        dir1 = 3;
+        dir2 = 0;
+        while (dir1 >= 0) {
+            yt = y;
+            xt = slot;
+            for (int j = 0; j < dir1 && !inter; j++) {
+                yt += SEARCH_Y[axis];
+                xt += SEARCH_X[axis];
+                if (yt >= HEIGHT || yt < 0 || xt >= WIDTH || xt < 0)
+                    break;
+
+                if (game[yt][xt] == player) {
+                    count++;
+                } else if (game[yt][xt] == 0) {
+                    for (int i = yt; i < HEIGHT; i++) {
+                        if (game[i][xt] != 0)
+                            break;
+
+                        verticalHeight++;
+                    }
+                } else if (game[yt][xt] == player * -1) {
+                    inter = true;
+                }
+            }
+            if (count >= 4) {
+                return WIN;
+            } else if (inter) {
+                count = 1;
+            }
+            yt = y;
+            xt = slot;
+            for (int j = 0; j < dir2 && !inter; j++) {
+                yt += SEARCH_Y[axis + 1];
+                xt += SEARCH_X[axis + 1];
+                if (yt >= HEIGHT || yt < 0 || xt >= WIDTH || xt < 0)
+                    break;
+
+                if (game[yt][xt] == player) {
+                    count++;
+                } else if (game[yt][xt] == 0) {
+                    for (int i = yt; i < HEIGHT; i++) {
+                        if (game[i][xt] != 0)
+                            break;
+
+                        verticalHeight++;
+                    }
+                } else if (game[yt][xt] == player * -1) {
+                    inter = true;
+                }
+            }
+            if (count >= 4) {
+                return WIN;
+            } else if (inter) {
+                count = 1;
+            }
+            if (count > countMax) {
+                countMax = count;
+                verticalHeightOfMax = verticalHeight;
+            } else if (count == countMax && verticalHeight < verticalHeightOfMax) {
+                verticalHeightOfMax = verticalHeight;
+            }
+            dir1--;
+            dir2++;
+            count = 1;
+            verticalHeight = 0;
+            inter = false;
+        }
+        if (countMax == 3) {
+            score += 100000 - (verticalHeightOfMax);
+        } else if (countMax == 2) {
+            score += 10000 - (verticalHeightOfMax);
+        } else {
+            score += 100 - (verticalHeightOfMax);
+        }
+        countMax = 1;
+    }
+    return score;
+}
+
+
+
+

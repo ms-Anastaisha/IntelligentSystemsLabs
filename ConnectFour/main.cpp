@@ -3,8 +3,12 @@
 //
 #include "game.h"
 
+int start() {
+    Game *game = new Game();
+    int playerTurn = -1;
+    int player = 1;
 
-int main() {
+    bool error = false;
     int turn;
     while (true) {
         cout << "choose your turn(enter 1 or 2): " << endl;
@@ -14,41 +18,45 @@ int main() {
         else
             cout << "try again!" << endl;
     }
-    char computer, player;
     if (turn == 1) {
-        computer = 'O';
-        player = 'X';
+        game->botTurn = 2;
     } else {
-        computer = 'X';
-        player = 'O';
+        game->botTurn = 1;
     }
-    Game game(player, computer);
-    Computer comp(game);
-    int playerTurn = -1;
+
     while (true) {
-        if(turn == 1) {
-            comp.game.show();
-            cin >> playerTurn;
-            cout<<endl;
-            comp.game.make_turn(playerTurn, player);
-            comp.make_best_turn();
+        if (turn == 2) {
+            game->computer_move(player);
+            if (!error)
+                player *= -1;
         }
-        else{
-            comp.make_best_turn();
-            comp.game.show();
-            cin>>playerTurn;
-            cout<<endl;
-            comp.game.make_turn(playerTurn, player);
-        }
-        if(comp.game.isOver) {
+        game->show(error);
+        if (game->get_winner() != 0) {
             break;
         }
+        cout << "Enter valid column" << ": ";
+        cin >> playerTurn;
+        if (!game->move(player, playerTurn))
+            error = true;
+        if (turn == 1) {
+            if (!error)
+                player *= -1;
+            game->computer_move(player);
+        }
+        if (game->get_winner() != 0) {
+            game->show(error);
+            break;
+        }
+        if (!error)
+            player *= -1;
+
     }
-    if(comp.game.isTie)
-        cout << "It's a tie";
-    else if(comp.game.playerWin)
-        cout << "You win";
-    else
-        cout << "Triumph of artificial intelligence";
+    return 0;
+}
+
+
+int main() {
+
+    start();
     return 0;
 }

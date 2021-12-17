@@ -10,56 +10,54 @@
 #include <vector>
 #include <limits>
 #include <iostream>
+#include <algorithm>
+#include <climits>
+#include <stdlib.h>
+#include <time.h>
+#include <list>
+
+const int HEIGHT = 6;
+const int WIDTH = 7;
+const int NUM_OF_DIRECTIONS = 8;
+const int DEPTH = 8;
+const int WIN = 10000000;
+
+
 using namespace std;
-using State = array<array<char, 7>, 6>;
 
 class Game {
+
+    int game[HEIGHT][WIDTH];
+    int winner;
+
+    int winningMove;
+
+    array<int, NUM_OF_DIRECTIONS> SEARCH_X;
+    array<int, NUM_OF_DIRECTIONS> SEARCH_Y;
+
+    int check_win(int slot);
+
+    int unmove(int slot);
+
+    int find_available_index(int slot);
+
+    int min_max(int move, int depth, int alpha, int beta, int player, int boardScore);
+
 public:
-    char player, comp;
-    bool isCurrentPlayerTurn;
-    bool isStarted = false;
-    bool isOver = false;
-    bool isTie = false;
-    bool playerWin = false;
-    Game(char playerTurn, char compTurn);
-    char check(const State &state);
-    void show();
-    void make_turn(int column, char turn);
+    int botTurn;
 
-    static vector<int> possible_columns(const State& state);
+    Game();
 
-    int find_available_index(int column);
-    State main_state = {
-            array<char, 7>{'*', '*', '*', '*', '*', '*', '*'},
-            array<char, 7>{'*', '*', '*', '*', '*', '*', '*'},
-            array<char, 7>{'*', '*', '*', '*', '*', '*','*'},
-            array<char, 7>{'*', '*', '*', '*', '*', '*','*'},
-            array<char, 7>{'*', '*', '*', '*', '*', '*', '*'},
-            array<char, 7>{'*', '*', '*', '*', '*', '*', '*'}};
-private:
+    int move(int player, int slot);
 
+    bool move_is_valid(int move);
 
+    int computer_move(int player);
 
-    bool cmp(char first, char second, char third, char fourth);
+    int get_winner();
 
-    char check_horizontal(const State &state);
+    void show(bool error = false);
 
-    char check_vertical(const State &state);
-
-    char check_right_diagonal(const State &state);
-
-    char check_left_diagonal(const State &state);
-};
-
-class Computer {
-
-    map<State, int> generate_successors(const State& state, char turn);
-    State make_turn(int column, const State& state, int turn);
-    int min_max(const State& state, int depth, int alpha, int beta, bool maximizing);
-public:
-    Game game;
-    void make_best_turn();
-    explicit  Computer(const Game& game1): game(game1){}
 };
 
 #endif //CONNECTFOUR_GAME_H
