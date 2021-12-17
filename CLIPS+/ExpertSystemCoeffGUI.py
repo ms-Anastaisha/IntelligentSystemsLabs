@@ -55,15 +55,22 @@ class ExpertSystemCoeff:
         ## checkbuttons
         self.fact_checkbuttons = []
         self.fact_vars = []
+        self.fact_weights = []
         for fact, text in self.facts.items():
             if fact in self.visible:
+                label_frame = LabelFrame(self.fact_text, text='')
                 var = IntVar(value=0)
-                cb = Checkbutton(self.fact_text, text="%s(%s)" % (text, fact),
+                weight_var = DoubleVar(value=1)
+                ent = Entry(label_frame, textvariable=weight_var, font=self.myFont, width=5)
+                cb = Checkbutton(label_frame, text="%s(%s)" % (text, fact),
                                  variable=var, onvalue=1, offvalue=0, font=self.myFont)
-                self.fact_text.window_create("end", window=cb)
+                ent.grid(row=0, column=1)
+                cb.grid(row=0, column=0)
+                self.fact_text.window_create("end", window=label_frame)
                 self.fact_text.insert("end", "\n")
                 self.fact_checkbuttons.append(cb)
                 self.fact_vars.append(var)
+                self.fact_weights.append(weight_var)
 
         self.fact_text.configure(state="disabled")
         self.result_text.configure(state="disabled")
@@ -71,14 +78,16 @@ class ExpertSystemCoeff:
         self.window.mainloop()
 
     def _get_init_facts(self):
-        init_facts = []
-        for cb, var in zip(self.fact_checkbuttons, self.fact_vars):
+        init_facts, init_weights = [], []
+        for cb, var, weight in zip(self.fact_checkbuttons, self.fact_vars, self.fact_weights):
             text = cb.cget("text")
             value = var.get()
+            weight_value = weight.get()
             result = re.search(r"\(([A-Za-z0-9\-]+)\)", text).group(1)
             if value == 1:
                 init_facts.append(result)
-        return init_facts
+                init_weights.append(weight_value)
+        return init_facts, init_weights
 
     def download(self):
         filename = fd.askopenfilename(filetypes=filetypes)
@@ -93,8 +102,8 @@ class ExpertSystemCoeff:
         self.status_label.config(text="Файл сгенерирован", fg="#00f")
 
     def clips_chaining(self):
-        init_facts = self._get_init_facts()
-        run_clips_chaining(self.environment, init_facts, self.facts, self.result_text)
+        init_facts, init_weights = self._get_init_facts()
+        run_clips_chaining(self.environment, init_facts, init_weights, self.facts, self.result_text)
         self.status_label.config(text="Вывод окончен", fg="#00f")
 
     def clips_files_clear(self):

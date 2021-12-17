@@ -30,7 +30,7 @@ def run_clips_chaining(environment, from_facts, from_weights, facts, text_widget
     for ff, fw in zip(from_facts, from_weights):
         template = environment.find_template(fact2template(facts[ff]))
         template.assert_fact(data=facts[ff],
-                             weight=".2f" % fw)
+                             weight="%.1f" % fw)
     while True:
         environment.run()
         end = handle_user_response(environment, text_widget)
