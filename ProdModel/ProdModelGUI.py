@@ -44,7 +44,7 @@ class ProdModel:
             if fact in self.visible:
                 var = IntVar(value=0)
                 cb = Checkbutton(self.fact_text, text="%s(%s)" % (text, fact),
-                                 variable=var, onvalue=1, offvalue=0)
+                                 variable=var, onvalue=1, offvalue=0, font=self.myFont)
                 self.fact_text.window_create("end", window=cb)
                 self.fact_text.insert("end", "\n")
                 self.fact_checkbuttons.append(cb)
@@ -55,7 +55,7 @@ class ProdModel:
         for fact, text in self.final_facts.items():
             var = IntVar(value=0)
             cb = Checkbutton(self.final_text, text="%s(%s)" % (text, fact),
-                             variable=var, onvalue=1, offvalue=0)
+                             variable=var, onvalue=1, offvalue=0, font=self.myFont)
             self.final_text.window_create("end", window=cb)
             self.final_text.insert("end", "\n")
             self.final_checkbuttons.append(cb)
@@ -103,7 +103,10 @@ class ProdModel:
         return reasoning
 
     def backward_chaining(self, init_facts, final):
-        solutionTree = SolutionTree(init_facts, final, self.products)
+        merged_facts = {}
+        merged_facts.update(self.facts)
+        merged_facts.update(self.final_facts)
+        solutionTree = SolutionTree(init_facts, final, self.products, merged_facts)
         return solutionTree.resolve()
 
     def init_forward(self):
@@ -122,7 +125,7 @@ class ProdModel:
                 s = ""
                 reason = reasoning[f]
                 for r in reason:
-                    s += "%s \n и " % self.products[r][2]
+                    s += "%s и \n" % self.products[r][2]
                 s = s[:-2]
                 self.result_text.insert(INSERT, "%s\n" % s)
         self.result_text.configure(state="disabled")
@@ -152,4 +155,3 @@ class ProdModel:
 
 if __name__ == '__main__':
     ProdModel('./data/facts.txt', './data/productions.txt')
-    # print(prod_model.backward_chaining({"f-2","f-11", "f-5" }, "f-10"))
