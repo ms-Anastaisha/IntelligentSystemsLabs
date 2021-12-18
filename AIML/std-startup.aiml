@@ -1,0 +1,39 @@
+<aiml version="1.0">
+    <category>
+        <pattern>LOAD AIML B</pattern>
+        <template>
+            <!-- Load standard AIML set -->
+            <learn>standard/AI.aiml</learn>
+            <learn>standard/Atomic.aiml</learn>
+            <learn>standard/Biography.aiml</learn>
+            <learn>standard/Bot.aiml</learn>
+            <learn>standard/Botmaster.aiml</learn>
+            <learn>standard/Client.aiml</learn>
+            <learn>standard/Computers.aiml</learn>
+            <learn>standard/CustomTagTest.aiml</learn>
+            <learn>standard/Default.aiml</learn>
+            <learn>standard/Emotion.aiml</learn>
+            <learn>standard/Food.aiml</learn>
+            <learn>standard/Geography.aiml</learn>
+            <learn>standard/History.aiml</learn>
+            <learn>standard/Inquiry.aiml</learn>
+            <learn>standard/Interjection.aiml</learn>
+            <learn>standard/IU.aiml</learn>
+            <learn>standard/Knowledge.aiml</learn>
+            <learn>standard/Literature.aiml</learn>
+            <learn>standard/Money.aiml</learn>
+            <learn>standard/Movies.aiml</learn>
+            <learn>standard/Music.aiml</learn>
+            <learn>standard/Philosophy.aiml</learn>
+            <learn>standard/Pickup.aiml</learn>
+            <learn>standard/Predicates.aiml</learn>
+            <learn>standard/Reduce.aiml</learn>
+            <learn>standard/Reductions.aiml</learn>
+            <learn>standard/Salutations.aiml</learn>
+            <learn>standard/Science.aiml</learn>
+            <learn>standard/Stack.aiml</learn>
+            <learn>standard/Stories.aiml</learn>
+            <learn>standard/That.aiml</learn>
+        </template>
+    </category>
+</aiml>

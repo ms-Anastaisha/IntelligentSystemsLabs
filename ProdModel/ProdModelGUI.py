@@ -126,7 +126,7 @@ class ProdModel:
                 reason = reasoning[f]
                 for r in reason:
                     s += "%s и \n" % self.products[r][2]
-                s = s[:-2]
+                s = s[:-4] + "\n"
                 self.result_text.insert(INSERT, "%s\n" % s)
         self.result_text.configure(state="disabled")
 
