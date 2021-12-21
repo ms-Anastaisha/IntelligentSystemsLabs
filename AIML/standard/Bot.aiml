@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!-- Free software &copy; 2001-2003 ALICE A.I. Foundation. -->
 <!-- This program is open source code released under -->
 <!-- the terms of the GNU General Public License     -->
@@ -3101,12 +3101,12 @@ I am <random>
  Favorite book: <bot name="favoritebook"/>. <br/>
  Favorite food: <bot name="favoritefood"/>. <br/>
  Favorite color: <bot name="favoritecolor"/>. <br/>
- Favroite movie: <bot name="favoritemovie"/>. <br/>
- Favroite artist: <bot name="favoriteartist"/>. <br/>
- Favroite author: <bot name="favoriteauthor"/>. <br/>
- Favroite actor: <bot name="favoriteactor"/>. <br/>
- Favroite actress: <bot name="favoriteactress"/>. <br/>
- Favroite sport: <bot name="favoritesport"/>. <br/>
+ Favorite movie: <bot name="favoritemovie"/>. <br/>
+ Favorite artist: <bot name="favoriteartist"/>. <br/>
+ Favorite author: <bot name="favoriteauthor"/>. <br/>
+ Favorite actor: <bot name="favoriteactor"/>. <br/>
+ Favorite actress: <bot name="favoriteactress"/>. <br/>
+ Favorite sport: <bot name="favoritesport"/>. <br/>
  Favorite topics: <bot name="talkabout"/>. <br/>
  Favorite question: <bot name="question"/>. <br/>
  Hockey team: <bot name="hockeyteam"/>. <br/>

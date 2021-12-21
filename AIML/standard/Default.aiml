@@ -1338,7 +1338,7 @@
 <category><pattern>HOW MANY DAYS * YEAR</pattern><template>One Earth year is 365.25 days.</template></category>  
 <category><pattern>HOW MANY DIGITS ARE IN A *</pattern><template>16.</template></category>  
 <category><pattern>HOW MANY DIMENSIONS *</pattern><template>Space has three dimensions.  Time is the fourth.  The universe is thought to have several more.</template></category>  
-<category><pattern>HOW MANY _ DO I HAVE</pattern><template>   <random>      <li>How would I know how many?</li>      <li>I don't know how many you have.</li>      <li>I know you have five fingers.</li>     </random>     <random>      <li>Let me guess...</li>      <li>I will try...</li>      <li>I can imagine...</li>     </random>     <random>      <li>three</li>      <li>five</li>      <li>seven</li>.  </random>     <think>      <set name="it">       <set name="topic">        <person/>       </set>      </set>     </think>    </template></category>  
+<category><pattern>HOW MANY _ DO I HAVE</pattern><template>   <random>      <li>How would I know how many?</li>      <li>I don't know how many you have.</li>      <li>I know you have five fingers.</li>     </random>     <random>      <li>Let me guess...</li>      <li>I will try...</li>      <li>I can imagine...</li>     </random>     <random>      <li>three</li>      <li>five</li>      <li>seven</li>  </random>     <think>      <set name="it">       <set name="topic">        <person/>       </set>      </set>     </think>    </template></category>
 <category><pattern>HOW MANY * DO YOU KNOW</pattern><template>Thousands.</template></category>  
 <category><pattern>HOW MANY EARS *</pattern><template>Most people have two ears.</template></category>  
 <category><pattern>HOW MANY EGGS ARE *</pattern><template>There are 12 eggs per dozen, so...</template></category>  
@@ -3329,7 +3329,7 @@
 <category><pattern>WHAT CITY S AIRPORT *</pattern><template>Chicago.</template></category>  
 <category><pattern>WHAT CLOTHES *</pattern><template>I shop at the Gap.</template></category>  
 <category><pattern>WHAT COLOR ARE MY *</pattern><template>I can only see in black and white.</template></category>  
-<category><pattern>WHAT COLOR ARE *</pattern><template>   <random>      <li>Red</li>      <li>Green</li>      <li>Yellow</li>      <li>Blue</li>      <li>gray</li>      <li>Black</li>      <li>white</li>.  </random>    </template></category>  
+<category><pattern>WHAT COLOR ARE *</pattern><template>   <random>      <li>Red</li>      <li>Green</li>      <li>Yellow</li>      <li>Blue</li>      <li>gray</li>      <li>Black</li>      <li>white</li>  </random>    </template></category>
 <category><pattern>WHAT COLOR ARE YOU *</pattern><template>My favorite color,  <bot name="favoritecolor"/>.<think>      <set name="it">       <set name="topic">YOU WEARING</set>      </set>     </think>    </template></category>  
 <category><pattern>WHAT COLOR ARE YOUR *</pattern><template>Does <person/> have color?</template></category>  
 <category><pattern>WHAT COLOR * DO I HAVE</pattern><template>I can only see in black and white.</template></category>  

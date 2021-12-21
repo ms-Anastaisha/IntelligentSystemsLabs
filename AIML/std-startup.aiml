@@ -34,6 +34,7 @@
             <learn>standard/Stack.aiml</learn>
             <learn>standard/Stories.aiml</learn>
             <learn>standard/That.aiml</learn>
+            <learn>standard/DefaultRussian.aiml</learn>
         </template>
     </category>
 </aiml>

@@ -1,7 +1,7 @@
 from tkinter import *
 from tkinter.font import Font
 import aiml
-import os
+
 
 
 class ChatBotUI:
@@ -15,16 +15,9 @@ class ChatBotUI:
         self.window.bind('<Return>', self._send)
 
         ##aiml
-        BRAIN_FILE = "brain.dump"
         self.k = aiml.Kernel()
-        if os.path.exists(BRAIN_FILE):
-            print("Loading from brain file: " + BRAIN_FILE)
-            self.k.loadBrain(BRAIN_FILE)
-        else:
-            print("Parsing aiml files")
-            self.k.bootstrap(learnFiles="std-startup.aiml", commands="load aiml b")
-            print("Saving brain file: " + BRAIN_FILE)
-            self.k.saveBrain(BRAIN_FILE)
+        self._set_properties()
+        self.k.bootstrap(learnFiles="std-startup.aiml", commands="load aiml b")
 
         ## control buttons
         self.button_send = Button(self.window, text="Отправить", command=self._send, width=30,
@@ -54,6 +47,12 @@ class ChatBotUI:
         self._text.insert(INSERT, "Bot: %s\n" % response)
         self._text.configure(state="disabled")
 
+    def _set_properties(self):
+        with open("standard/bot.config", 'r', encoding='utf-8') as f:
+            for line in f:
+                name, value = line.split('=')
+                value = value.strip()
+                self.k.setBotPredicate(name, value)
 
 if __name__ == '__main__':
     ChatBotUI()
