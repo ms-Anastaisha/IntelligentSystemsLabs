@@ -38,7 +38,7 @@ class NeuralNetworkUI:
         self.user_message.grid(row=2, column=2, columnspan=2, sticky="N")
 
         ## camera
-        self.cap = cv2.VideoCapture(1)
+        self.cap = cv2.VideoCapture(0)
         self.camera_input = Label(image=image_placeholder)
         self.camera_processed = Label(image=image_placeholder)
         self.camera_input.grid(column=0, row=0, rowspan=3)

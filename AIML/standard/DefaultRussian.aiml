@@ -23,7 +23,7 @@
 <category><pattern>ХАЙ</pattern><template><srai>ПРИВЕТ</srai></template></category>
 
 <category>
-    <pattern> Я * </pattern>
+    <pattern> Я *</pattern>
     <template>
         <think><set name="username"><star/></set></think>
         <random>
@@ -37,6 +37,7 @@
 
 <category><pattern>МЕНЯ ЗОВУТ *</pattern><template><srai>Я *</srai></template></category>
 <category><pattern>МОЕ ИМЯ *</pattern><template><srai>Я *</srai></template></category>
+<category><pattern>Я *</pattern><template><srai>Я *</srai></template></category>
 
 <category>
     <pattern> Я *, А ТЫ?</pattern>
@@ -89,7 +90,7 @@
 <category><pattern>* КТО ТЫ</pattern><template><srai>КТО ТЫ</srai></template></category>
 
 <category>
-    <pattern>ДАВАЙ ПОГОВОРИМ О *</pattern>
+    <pattern>ДАВАЙ ПОГОВОРИМ О</pattern>
     <template>
         <random>
         <li> Да, давай поговорим о <set name="topic"> <star/> </set>.</li>
@@ -99,9 +100,9 @@
     </template>
 </category>
 
-<category><pattern>ПОГОВОРИМ О *</pattern><template><srai>ДАВАЙ ПОГОВОРИМ О *</srai></template></category>
-<category><pattern>РАССКАЖИ О *</pattern><template><srai>ДАВАЙ ПОГОВОРИМ О *</srai></template></category>
-
+<category><pattern>ПОГОВОРИМ О *</pattern><template><srai>ДАВАЙ ПОГОВОРИМ О </srai></template></category>
+<category><pattern>РАССКАЖИ О *</pattern><template><srai>ДАВАЙ ПОГОВОРИМ О</srai></template></category>
+<category><pattern>ДАВАЙ ПОГОВОРИМ О *</pattern><template><srai>ДАВАЙ ПОГОВОРИМ О</srai></template></category>
 
 
 <topic name="греческом алфавите">
