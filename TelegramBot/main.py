@@ -6,6 +6,7 @@ from conv_nnet import ClassificationConvNet, crop_borders
 import json
 import aiml
 import cv2
+from miniclips import Miniclips
 
 
 def _set_properties(k):
@@ -18,14 +19,19 @@ def _set_properties(k):
 
 bot = telebot.TeleBot('5062128956:AAF9hNqI3LnLhi4E7Rbv-8p91DI5Mryw_ic')
 
+## NNet
 model = ClassificationConvNet()
 model.load_state_dict(torch.load("GREEK_net.pth", map_location=torch.device('cpu')))
 model.eval()
 with open('labels2names.json', 'r', encoding='utf-8') as f:
     labels2names = json.load(f)
 output_activation = torch.nn.Softmax(dim=1)
-CLIPS_FLAG = False
 
+##Clips
+CLIPS_FLAG = False
+clipsModel = Miniclips('data/facts.txt', 'data/productions.txt', 'book.clp')
+
+## aiml
 k = aiml.Kernel()
 _set_properties(k)
 k.bootstrap(learnFiles="std-startup.aiml", commands="load aiml b")
@@ -65,14 +71,23 @@ def start(m):
                      '\nМогу просто поболтать(в основном на английском) - наберите сообщение',
                      reply_markup=markup)
 
+@bot.message_handler(commands=["return"])
+def start(m):
+    global CLIPS_FLAG
+    CLIPS_FLAG = False
 
 @bot.message_handler(content_types=["text"])
 def handle_text(message):
+    global CLIPS_FLAG
     if message.text.strip() == 'Книги':
-        answer = 'sdfajslfd'
+        CLIPS_FLAG = True
+        answer = clipsModel.message()
     else:
         human_input = message.text.strip()
-        answer = k.respond(human_input)
+        if CLIPS_FLAG:
+            answer = clipsModel.proceed(human_input)
+        else:
+            answer = k.respond(human_input)
     bot.send_message(message.chat.id, answer)
 
 
