@@ -7,8 +7,18 @@ import cv2
 from torch import nn
 from tqdm import tqdm
 from albumentations.pytorch.transforms import ToTensorV2
-
-
+labels2names ={
+  "0": "alpha",
+  "1": "beta",
+  "2": "eta",
+  "3": "kappa",
+  "4": "lambda",
+  "5": "nu",
+  "6": "phi",
+  "7": "pi",
+  "8": "sigma",
+  "9": "tau"
+}
 def read_images(image_dir_path: str, labels2names: dict = None) -> Tuple[List[np.ndarray], List[int], dict]:
     names2labels = None
     if labels2names is None:
@@ -86,9 +96,9 @@ class ClassificationConvNet(nn.Module):
     def __init__(self):
         super().__init__()
         self.feature_extractor = torch.nn.Sequential(
-            nn.Conv2d(1, 3, 7),
+            nn.Conv2d(1, 6, 5),
             nn.MaxPool2d(2, 2),
-            nn.Conv2d(3, 6, 5),
+            nn.Conv2d(6, 9, 5),
             nn.MaxPool2d(2, 2),
 
         )
@@ -105,8 +115,10 @@ class ClassificationConvNet(nn.Module):
             nn.Flatten(),
             nn.Linear(feature_extractor_output_shape, 128),
             nn.ReLU(),
+            nn.Dropout(0.5),
             nn.Linear(128, 64),
             nn.ReLU(),
+            nn.Dropout(0.5),
             nn.Linear(64, 10)
         )
 
@@ -119,7 +131,7 @@ if __name__ == '__main__':
     ## inits
     net = ClassificationConvNet()
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(net.parameters(), lr=1e-4)
+    optimizer = torch.optim.Adam(net.parameters(), lr=1e-4, weight_decay=0.001)
     output_activation = torch.nn.Softmax(dim=1)
 
     ## data
@@ -140,7 +152,7 @@ if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     net.to(device)
     ## training loop
-    num_epochs = 4
+    num_epochs = 3
     for epoch in range(num_epochs):
         running_loss = 0
         running_accuracy = 0
