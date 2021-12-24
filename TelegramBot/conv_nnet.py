@@ -170,5 +170,5 @@ if __name__ == '__main__':
               "training accuracy: %.4f\n validation accuracy: %.4f" % (
                   epoch + 1, running_loss / i,
                   running_accuracy / i, val_running_accuracy / val_i))
-    PATH = '../TelegramBot/GREEK_net.pth'
+    PATH = './GREEK_net.pth'
     torch.save(net.state_dict(), PATH)

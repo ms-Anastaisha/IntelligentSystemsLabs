@@ -24,7 +24,7 @@ class NeuralNetworkUI:
         self.window = Tk()
         self.window.title("Нейронная сеть")
         self.window.tk.call('wm', 'iconphoto', self.window._w, PhotoImage(file='imgs/neural.png'))
-
+        self.window.bind('<space>', self._camera_off)
         image_placeholder = ImageTk.PhotoImage(Image.open('imgs/placeholder.png'))
 
         ## labels
@@ -223,7 +223,7 @@ class NeuralNetworkUI:
         if not self.camera_stop:
             self.camera_input.after(10, self.show_frame)
 
-    def _camera_off(self):
+    def _camera_off(self, event=None):
         self.camera_stop = True
 
 
