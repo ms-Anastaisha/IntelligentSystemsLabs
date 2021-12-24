@@ -152,7 +152,7 @@ if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     net.to(device)
     ## training loop
-    num_epochs = 3
+    num_epochs = 10
     for epoch in range(num_epochs):
         running_loss = 0
         running_accuracy = 0
