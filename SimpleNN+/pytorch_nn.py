@@ -6,7 +6,18 @@ import torch
 from dataset import ImageDataset
 from tqdm import tqdm
 
-
+labels2names ={
+  0: "alpha",
+  1: "beta",
+  2: "eta",
+  3: "kappa",
+  4: "lambda",
+  5: "nu",
+  6: "phi",
+  7: "pi",
+  8: "sigma",
+  9: "tau"
+}
 class ClassificationNet(torch.nn.Module):
     def __init__(self, hidden_dims: list = [500], num_cls: int = 10,
                  input_dim: int = 400):
@@ -29,8 +40,9 @@ class NetWrapper:
         self.net = ClassificationNet(architecture)
 
         self.output_activation = torch.nn.Softmax(dim=1)
-        traindataset = ImageDataset(dataset_len=3000)
-        self.labels2names = traindataset.labels2names_
+        self.labels2names = labels2names
+        traindataset = ImageDataset(dataset_len=3000, labels2names=self.labels2names)
+
         self.trainloader = torch.utils.data.DataLoader(
             traindataset, batch_size=50, shuffle=True, num_workers=2
         )

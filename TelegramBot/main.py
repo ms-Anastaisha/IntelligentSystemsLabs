@@ -7,7 +7,8 @@ import json
 import aiml
 import cv2
 from miniclips import Miniclips
-
+import albumentations as A
+from albumentations.pytorch.transforms import ToTensorV2
 
 def _set_properties(k):
     with open("standard/bot.config", 'r', encoding='utf-8') as f:
@@ -45,16 +46,27 @@ def photo(message):
     downloaded_file = bot.download_file(file_info.file_path)
     with open(name, 'wb') as new_file:
         new_file.write(downloaded_file)
-    image = cv2.resize(cv2.cvtColor(cv2.imread(name), cv2.COLOR_BGR2GRAY), (400, 400))
+    image = cv2.cvtColor(cv2.imread(name), cv2.COLOR_BGR2GRAY)
     image[image <= 98] = 1
     image[image > 98] = 0
-    t = torch.reshape(torch.from_numpy(image), (1, 1, 400, 400)).float()
+    image = crop_borders(image)
+
+    transform =  A.Compose([
+            A.Downscale(p=0.3),
+            A.GaussianBlur(p=0.5),
+            A.Rotate(limit=15, p=0.6, border_mode=cv2.BORDER_CONSTANT, value=0),
+            A.Resize(400, 400),
+            ToTensorV2(p=1.0)
+        ])
+
+    t = torch.unsqueeze(transform(image=image)["image"].float(), 0)
     outputs = model(t)
+    print(outputs)
     preds = torch.argmax(output_activation(outputs), dim=1)
+    print(preds)
     letter = labels2names[str(preds.item())]
     answer = "Думаю, это %s" % letter
     k.respond("тлен букве %s" % letter)
-    print("тлен букве %s" % letter)
     bot.send_message(message.chat.id, answer)
 
 
