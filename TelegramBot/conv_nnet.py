@@ -86,9 +86,9 @@ class ClassificationConvNet(nn.Module):
     def __init__(self):
         super().__init__()
         self.feature_extractor = torch.nn.Sequential(
-            nn.Conv2d(1, 3, 7),
+            nn.Conv2d(1, 6, 5),
             nn.MaxPool2d(2, 2),
-            nn.Conv2d(3, 6, 5),
+            nn.Conv2d(6, 9, 5),
             nn.MaxPool2d(2, 2),
 
         )
@@ -105,10 +105,13 @@ class ClassificationConvNet(nn.Module):
             nn.Flatten(),
             nn.Linear(feature_extractor_output_shape, 128),
             nn.ReLU(),
+            nn.Dropout(0.5),
             nn.Linear(128, 64),
             nn.ReLU(),
+            nn.Dropout(0.5),
             nn.Linear(64, 10)
         )
+
 
     def forward(self, x):
         x = self.feature_extractor(x)

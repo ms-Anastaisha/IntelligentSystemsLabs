@@ -8,16 +8,16 @@ from torch import nn
 from tqdm import tqdm
 from albumentations.pytorch.transforms import ToTensorV2
 labels2names ={
-  "0": "alpha",
-  "1": "beta",
-  "2": "eta",
-  "3": "kappa",
-  "4": "lambda",
-  "5": "nu",
-  "6": "phi",
-  "7": "pi",
-  "8": "sigma",
-  "9": "tau"
+  0: "alpha",
+  1: "beta",
+  2: "eta",
+  3: "kappa",
+  4: "lambda",
+  5: "nu",
+  6: "phi",
+  7: "pi",
+  8: "sigma",
+  9: "tau"
 }
 def read_images(image_dir_path: str, labels2names: dict = None) -> Tuple[List[np.ndarray], List[int], dict]:
     names2labels = None
@@ -135,8 +135,8 @@ if __name__ == '__main__':
     output_activation = torch.nn.Softmax(dim=1)
 
     ## data
-    traindataset = ImageDataset(dataset_len=5000)
-    labels2names = traindataset.labels2names_
+    traindataset = ImageDataset(dataset_len=5000, labels2names=labels2names)
+    #labels2names = traindataset.labels2names_
     trainloader = torch.utils.data.DataLoader(
         traindataset, batch_size=50, shuffle=True, num_workers=2
     )
