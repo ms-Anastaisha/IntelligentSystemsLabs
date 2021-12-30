@@ -1,14 +1,15 @@
 import telebot
-import random
 from telebot import types
 import torch
 from conv_nnet import ClassificationConvNet, crop_borders
+from pytorch_nn import ClassificationNet, compute_new_sample
 import json
 import aiml
 import cv2
+import numpy as np
 from miniclips import Miniclips
 import albumentations as A
-from albumentations.pytorch.transforms import ToTensorV2
+
 
 def _set_properties(k):
     with open("standard/bot.config", 'r', encoding='utf-8') as f:
@@ -21,12 +22,13 @@ def _set_properties(k):
 bot = telebot.TeleBot('5062128956:AAF9hNqI3LnLhi4E7Rbv-8p91DI5Mryw_ic')
 
 ## NNet
-model = ClassificationConvNet()
+#model = ClassificationConvNet()
+model = ClassificationNet(hidden_dims=[128, 64])
 model.load_state_dict(torch.load("GREEK_net.pth", map_location=torch.device('cpu')))
 model.eval()
 with open('labels2names.json', 'r', encoding='utf-8') as f:
     labels2names = json.load(f)
-output_activation = torch.nn.Softmax(dim=1)
+output_activation = torch.nn.Softmax(dim=0)
 
 ##Clips
 CLIPS_FLAG = False
@@ -54,15 +56,14 @@ def photo(message):
     transform =  A.Compose([
             A.Downscale(p=0.3),
             A.GaussianBlur(p=0.5),
-            A.Rotate(limit=15, p=0.6, border_mode=cv2.BORDER_CONSTANT, value=0),
             A.Resize(400, 400),
-            ToTensorV2(p=1.0)
         ])
 
-    t = torch.unsqueeze(transform(image=image)["image"].float(), 0)
+    #t = torch.unsqueeze(transform(image=image)["image"].float(), 0)
+    t = torch.from_numpy(np.array(compute_new_sample(transform(image=image)["image"]))).float()
     outputs = model(t)
     print(outputs)
-    preds = torch.argmax(output_activation(outputs), dim=1)
+    preds = torch.argmax(output_activation(outputs), dim=0)
     print(preds)
     letter = labels2names[str(preds.item())]
     answer = "Думаю, это %s" % letter

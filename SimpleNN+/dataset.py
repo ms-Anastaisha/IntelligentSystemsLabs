@@ -60,6 +60,14 @@ def compute_sample(image: np.ndarray) -> List[Union[int, np.ndarray]]:
             for i in range(image.shape[0] // cell_height)
             for j in range(image.shape[1] // cell_width)]
 
+@numba.jit(nopython=True)
+def compute_new_sample(image:np.ndarray) -> List[Union[int, np.ndarray]]:
+    cell_width, cell_height = 2, 2
+    result = [np.sum(image[i*cell_height, :]) for i in range(image.shape[0] // cell_height )]
+    result.extend([np.sum(image[:, j * cell_width]) for j in range(image.shape[0] // cell_width )])
+    return result
+
+
 
 class ImageDataset(torch.utils.data.Dataset):
     def __init__(self, image_dir_path: str = './data', dataset_len: int = 3000, labels2names: dict = None):
@@ -71,7 +79,6 @@ class ImageDataset(torch.utils.data.Dataset):
             A.Downscale(p=0.3),
             A.GlassBlur(p=0.3),
             A.GaussianBlur(p=0.3),
-            A.Rotate(limit=15, p=0.4, border_mode=cv2.BORDER_CONSTANT, value=0),
             A.Resize(400, 400)
         ])
         self.dataset_len = dataset_len
@@ -84,7 +91,7 @@ class ImageDataset(torch.utils.data.Dataset):
         image = self.transform(image=self.images[idx])["image"]
         # cv2.imshow("", (image * 255))
         # cv2.waitKey()
-        return compute_sample(image), self.labels[idx]
+        return compute_new_sample(image), self.labels[idx]
 
     @property
     def labels2names_(self):

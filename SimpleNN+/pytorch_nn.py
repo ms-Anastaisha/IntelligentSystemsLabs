@@ -1,23 +1,24 @@
 from collections import OrderedDict
-from typing import Tuple
+from typing import Tuple, List, Union
 
 import torch
 
 from dataset import ImageDataset
 from tqdm import tqdm
 
-labels2names ={
-  0: "alpha",
-  1: "beta",
-  2: "eta",
-  3: "kappa",
-  4: "lambda",
-  5: "nu",
-  6: "phi",
-  7: "pi",
-  8: "sigma",
-  9: "tau"
+labels2names = {
+    0: "alpha",
+    1: "beta",
+    2: "eta",
+    3: "kappa",
+    4: "lambda",
+    5: "nu",
+    6: "phi",
+    7: "pi",
+    8: "sigma",
+    9: "tau"
 }
+
 class ClassificationNet(torch.nn.Module):
     def __init__(self, hidden_dims: list = [500], num_cls: int = 10,
                  input_dim: int = 400):
@@ -96,6 +97,8 @@ class NetWrapper:
                   "training accuracy: %.4f\n validation accuracy: %.4f" % (
                       epoch + 1, running_loss / i,
                       running_accuracy / i, val_running_accuracy / val_i)
+        PATH = './GREEK_net.pth'
+        torch.save(self.net.state_dict(), PATH)
 
     def predict(self, x) -> str:
         x = torch.FloatTensor(x)
